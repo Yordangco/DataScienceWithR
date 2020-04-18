@@ -1,2 +1,0 @@
-# DataScienceWithR
-Practice and projects
