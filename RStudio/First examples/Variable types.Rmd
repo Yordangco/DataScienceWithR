@@ -1,0 +1,47 @@
+---
+title: "Variable types"
+author: "Yordan García Corrales"
+date: "3/5/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#Ordina variables
+```{r}
+clothes <- factor(c("Shirt","Shoes","Sweater", "Socks"))
+clothes
+
+#Bad way to use factor, because the levels have to be inverted
+answ <- factor(c("Good","Regular","Regular","Bad"), levels = c("Good","Regular","Bad"), ordered = T)
+Resp
+
+print('*Good way*')
+answ <- factor(c("Good","Regular","Regular","Bad"), levels = c("Bad","Regular","Good"), ordered = T)
+answ
+```
+
+```{r}
+minimum<-min(answ)
+maximum<-max(answ)
+
+compareMin<-answ[1]==minimum
+compareMax<-answ[1]==maximum
+
+answ;minimum;maximum;compareMin;compareMax
+
+```
+#Discrete variables
+```{r}
+AmountOwnHouses <- c(1,2,1,1)
+AmountOwnHouses
+```
+```{r}
+#Continuous Variables
+height <- c(1.65,1.78,1.87,1.56)
+height
+```
+ 
+ 

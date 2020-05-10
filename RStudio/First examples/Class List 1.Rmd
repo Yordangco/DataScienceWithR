@@ -1,0 +1,104 @@
+---
+title: "Class List 1"
+author: "Yordan García Corrales"
+date: "1/5/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+#Some functions
+v1 <- c(1,0,2,0,-1)
+v1
+
+#Logic v
+v2<-as.logical(v1); v2
+
+#Numeric
+v3<-as.numeric(v2);v3
+
+#Character
+v4<-as.character(v1);v4
+
+```
+
+```{r}
+#Factor
+vFactor<-as.factor(v1); vFactor
+
+#Try to get in numeric values
+print("Problem factor to numeric")
+v6<-as.numeric(vFactor); v6 # get each number and write the level position
+print("Solution")
+v7<-as.numeric(as.character(vFactor)); v7
+
+```
+
+```{r}
+#Implicit coercion
+vImpl <- c(3,1,T,F,2+3i) # R change all value to the bigger
+vImpl
+
+mode(vImpl)
+
+print("Example 2")
+v2 <- c(3,1,T,F,2+3i, "hola")
+v2
+```
+
+#Lists
+```{r}
+Lista1 <- list(Edad=30,Autos=1,Fuma=T,HaceDeporte=F,Dato=2+3i)
+mode(Lista1)
+Lista1
+```
+
+```{r}
+#List 2
+Lista2 <- list(Edad=30,Autos=1,Fuma=F,HaceDeporte=T,Dato=2+3i,Saludo="Hola")
+mode(Lista2)
+Lista2
+```
+
+```{r}
+Lista3 <- list(Edad=c(30,23,21),Autos=1,Fuma=c(F,T,F,T,T),HaceDeporte=T,Dato=2+3i,Saludo="Hola")
+Lista3
+
+print("Get one parte of one array")
+Lista3$Edad[1]
+```
+```{r}
+#Example 4 List
+Lista4 <- list(uno=Lista1,dos=Lista2,tres=Lista3)
+Lista4
+
+print("Get one List")
+Lista4$dos$Autos
+```
+Union Lists
+```{r}
+#Version 1
+UList1<-list(one=Lista1,two=Lista2,three=Lista3)
+
+UList1$three$Fuma
+```
+```{r}
+#Version 2 unlist
+UList2<-unlist(x=UList1,recursive = F,use.names = T) # unlist(UList1,F,T)
+
+UList2$one.Edad #It is easier to use.
+```
+```{r}
+#Union by purrr
+library(purrr)
+
+ListFlatte<-flatten(UList1) #flatten has a problem because delete all name that asosiate the list with its datas.
+
+
+ListFlatte$Edad #We don´t know in where list is this Edad.
+
+```
+

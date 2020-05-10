@@ -1,0 +1,102 @@
+---
+title: "Arrays"
+author: "Yordan García Corrales"
+date: "26/4/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+#Function seq
+v01<-seq(from=1,to=10,by=2); v01
+v01<-seq(2,9,3);v01
+```
+
+```{r}
+#Function rep
+rep(11,3) #Three times 11
+
+#Function sequence
+sequence(2:4) #Use 1 to 2, 1 to 3 and 1 to 4
+
+sequence(c(2,5)) #Use 1 to 2 and 1 to 5
+```
+```{r}
+#Function Generate leves
+v02<-gl(2,3); v02 # Repeat 1 three times and 2 three times
+
+gl(3,2)
+gl(3,4, labels =c("Blue","Red","Orange")) #Replace the 3 with the labels and repeat the labels 3 times each.
+
+v03<-double(5); v03 # 5 spaces in cero.
+```
+
+```{r}
+#Math Functions
+v04<-c(10:15); v04
+
+prod(v04) #Multiply all elements
+
+#accumulated sum
+v04
+cumsum(v04) # Frist 10, second 10+11=21, third 10+11+12=33
+```
+
+```{r}
+#Sample Function
+sample(1:10,6)
+
+sample(1:10,15,replace=T) #Allow to repeat numbers
+
+sample(1:10,5)/10
+```
+
+```{r}
+#Function sort and rev
+v05<-rep(1:4,5); v05
+
+sort(v05)
+sort(v05,decreasing = T)
+rev(sort(v05))
+```
+
+```{r}
+#Functions to get positions
+v06<-c(5:18); v06
+
+which.max(v06)#Get position
+which.min(v06)# Get position
+
+v06<-c(v06,5); v06
+which.min(v06) #Get the first position finding.
+```
+
+```{r}
+#Array letters
+letters
+print("-----Division-----")
+letters[1:10]
+
+LETTERS #Uppercase letters
+
+```
+
+```{r}
+#Order letters
+v07<-sample(1:26,10); v07
+
+letters[sort(v07)]
+```
+
+```{r}
+#Function Unique
+v08<-sequence(1:3); v08
+v08<-sort(v08,decreasing = T)
+gl(3,4)
+
+unique(sort(v08))
+```
+

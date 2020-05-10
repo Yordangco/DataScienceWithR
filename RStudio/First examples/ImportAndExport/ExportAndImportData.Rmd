@@ -1,0 +1,96 @@
+---
+title: "ExportAndImportData"
+author: "Yordan García Corrales"
+date: "5/5/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#Import libraries
+```{r}
+library(rJava)
+library(readr)
+library(readxl)
+library(xlsx)
+library(xlsxjars)
+```
+
+#Import an xlsx
+```{r}
+read1<- read_xlsx(path ="Datos01.xlsx", sheet = "Hoja1" )#This file has more than 1 page.
+read1
+
+head(read1)#Get the first 6 rows
+```
+
+```{r}
+read2<-read_xlsx(path = "Datos02.xlsx")
+read2
+```
+
+
+#Read data from txt
+
+```{r}
+readtxt=read.table(file = "Datos03.txt",dec = ".",header = F,sep = "\t")
+
+names(readtxt)<-c("Names","Age","Moth","VacationDays","Height")
+readtxt
+```
+
+#Read csv files
+```{r}
+readCsv=read.csv(file="Datos04.csv",header = T,sep = ";",dec = ".")
+
+readCsv
+```
+
+#Emport data to Excel file
+```{r}
+write.xlsx(read1,file = "ExportRead1.xlsx",sheetName = "Data01")
+write.xlsx(x=read2,file = "ExportRead2.xlsx",sheetName = "Data02")
+write.xlsx(x=readCsv,file = "ExportreadCsv.xlsx",sheetName = "DataCsv")
+write.xlsx(x=readtxt,file = "Exportreadtxt.xlsx",sheetName = "readtxt")
+```
+
+#Emport data in one excel by pages
+```{r}
+write.xlsx(read1,file = "GeneralDatas.xlsx",sheetName = "Data01")
+write.xlsx(x=read2,file = "GeneralDatas.xlsx",sheetName = "Data02",append = TRUE)
+write.xlsx(x=readCsv,file = "GeneralDatas.xlsx",sheetName = "DataCsv",append = TRUE)
+write.xlsx(x=readtxt,file = "GeneralDatas.xlsx",sheetName = "readtxt",append = TRUE)
+```
+
+#Emport data to txt file using write.table
+```{r}
+write.table(x=read1,file = "EmportRead1.txt",sep = ";",dec = ".",row.names = T, col.names = T)
+
+write.csv(x=read1,file = "ExportCSV.csv")
+```
+
+#Emport rds
+```{r}
+path<-"C:/Users/Yordan Garcia Corral/Documents/Ciencia de datos/Practice and projects/trunk/RStudio/First examples/ImportAndExport/"
+
+nameFile<- "EmportRds.rds"
+
+allPath<-paste0(path,nameFile)
+
+saveRDS(read1,file =allPath )
+
+readRDS1<-readRDS(allPath); readRDS1
+```
+
+#Delete an specific file
+```{r}
+#setwd(path)
+existFil<- file.exists("GeneralDatas.xlsx")
+
+if(existFil==T){
+  file.remove("GeneralDatas.xlsx")
+}
+```
+

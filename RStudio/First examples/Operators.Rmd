@@ -1,0 +1,97 @@
+---
+title: "Operators"
+author: "Yordan García Corrales"
+date: "25/4/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Asignation
+```{r}
+var1<-10
+var2<-"Hello"
+var3<-TRUE
+```
+
+Show
+```{r}
+print(var1);
+print(var2);
+print(var3);
+print("Both way to show")
+var1;var2;var3;
+```
+Arrays
+```{r}
+a1<- 1:8
+a2<- 5:2
+a3<- 1.5:9.8
+a4<- c(1,2,3,4,76)
+
+a1;a2;a3;a4;
+```
+
+Matrix
+```{r}
+c<-5.1:12.4;
+M= matrix(c,nrow=2,ncol = 4,byrow = TRUE);
+M;
+print("---------------------")
+print("M Transpose")
+t(M)
+```
+
+Multiply Matrix
+```{r}
+Multiply<- M %*% t(M);
+Multiply
+```
+
+Array Operators
+```{r}
+array1<- c(2.0,5.0,6.0)
+array2<- c(8,2,3)
+```
+Add
+```{r}
+array1;array2
+print(array1+array2)
+```
+Subtraction
+```{r}
+array1;array2
+print(array1-array2)
+print(array2-array1)
+```
+Multiplication
+```{r}
+array1;array2
+print(array1*array2)
+```
+
+Division
+```{r}
+array1;array2
+print(array1/array2)
+print(array2/array1)
+```
+
+Get Residuo
+```{r}
+array1;array2;print(array1%%array2);print(array2%%array1)
+```
+
+Quotient
+
+```{r}
+array1;array2;print(array1%/%array2)
+```
+
+Exponential
+```{r}
+array1;array2;print(array1**array2); array1^array2
+```
+

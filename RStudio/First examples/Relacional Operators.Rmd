@@ -1,0 +1,101 @@
+---
+title: "Operator part 2"
+author: "Yordan García Corrales"
+date: "25/4/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+v <- c(2, 5.5, 6, 9)
+t <- c(8, 2.5, 14, 9)
+
+v; t
+```
+
+IsNA Funtion
+
+```{r}
+v; is.na(v)
+v2<-c(1,2,NA); is.na(v2)
+```
+
+Greater than
+```{r}
+v;t; print(v>t)
+```
+
+
+Smaller than
+```{r}
+v;t; print(v<t)
+```
+
+Comparison
+```{r}
+v;t; print(v==t)
+```
+
+Different
+```{r}
+v;t; print(v!=t)
+```
+
+Logical
+```{r}
+v1 <- c(3,1,T,0,10,3,3,32,3)
+t2 <- c(F,1,F,23,31,21,44,21,F)
+
+v1; t2
+```
+
+AND
+
+```{r}
+v1;t2; print(v1&t2)
+```
+
+OR
+```{r}
+v1;t2; print(v1|t2)
+```
+
+NOT
+```{r}
+v <- c(3,0,TRUE,2,0,1,1,2,1,0)
+
+v; print(!v)
+```
+
+%in% Operator
+```{r}
+vec0 <- c(1:10,15:25)
+
+evaluation1<- 20%in%vec0
+vec0;evaluation1
+
+evaluation1<- 30%in%vec0
+vec0;evaluation1
+```
+
+Doble &&. Just compare the first element
+```{r}
+v1 <- c(3,1,T,0,10,3,3,32,3)
+t2 <- c(F,1,F,23,31,21,44,21,F)
+
+v1;t2; print(v1&&t2)
+```
+
+Doble ||
+```{r}
+v1;t2; print(v1||t2)
+```
+
+Help operators
+```{r}
+?"[["
+```
+

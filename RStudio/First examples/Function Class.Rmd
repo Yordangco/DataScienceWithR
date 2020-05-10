@@ -1,0 +1,126 @@
+---
+title: "Function Class"
+author: "Yordan García Corrales"
+date: "10/5/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Nested functions
+```{r}
+Datas_01 <- data.frame(Height=c(1.65,1.70,1.89),Hair=c("Short","Medium","Large"))
+Datas_01
+```
+
+# Procedure 
+```{r}
+grades <- c(90,55,89,68) #Each grade has 25% of value
+grades
+
+mean1<- mean(grades); mean1
+
+if(mean1>=70){
+  cat("You won the course, grade ",mean1)
+}else{
+  if(mean1<70 & mean1>=60){
+    cat("You have to go to extraordinary, grade ", mean1)
+  }else{
+      cat("You lose the course, grade ", mean1)
+  }
+}
+```
+
+# For
+```{r}
+for(x in c(1:12)){
+  cat("Square root of ",x," is ",round(sqrt(x),2), "\n")
+}
+```
+#Examplo 2 using for
+```{r}
+total<-0
+for(x in c(1:5)){
+  if(x%%2==0){# if the number is even
+    total=total+x
+  }
+}
+total
+```
+#Example using some grades
+```{r}
+grades1 <- c(90,55,89,68)
+
+grades2 <- c(70,65,65,67)
+
+grades3 <- c(40,59,70,20)
+
+grades1; grades2; grades3
+
+# Create an array with the means of each
+print("Mean's grades")
+mean_grades <- c(mean(grades1), mean(grades2), mean(grades3))
+mean_grades
+
+for(student in mean_grades){
+  if(student>=70){
+  cat("You won the course, grade ",student, "\n")
+}else{
+  if(student<70 & student>=60){
+    cat("You have to go to extraordinary, grade ", student, "\n")
+  }else{
+      cat("You lose the course, grade ", student, "\n")
+  }
+}
+}
+```
+#A complex example creating a Amortization table of a loan.
+```{r}
+
+# Parameters
+Pr <- 10000 # Loan's amount 
+n <- 1 # Years
+i <- 0.05 # Interest rate
+j <- i/12 # Month interest rate
+k <- n*12 # Months
+```
+
+#Manth function
+```{r}
+#Fee calculation
+fee <- Pr*(j/(1-(1+j)^(-k)))
+
+v1 <- rep(fee,k)
+v2 <- rep(0,k)
+v3 <- rep(0,k)
+v4 <- rep(0,k)
+v5 <- rep(0,k)
+
+#Initial balance
+Balance <- Pr
+Interest <-0
+
+for(month in 1:k){
+  
+  Interest<-Balance*j
+  Amortization<- fee - Interest
+  Balance<- Balance - Amortization
+
+  v2[month]<- month
+  v3[month]<- round(Amortization,2)
+  v4[month]<- round(Interest,2)
+  v5[month]<- round(Balance,2)
+}
+
+Table<-data.frame(Month="M",Num=v2,Fee=round(fee,2),Amortization=v3,Interest=v4,Balance=v5)
+
+#Export datas
+write.csv(x=Table,file = "FirstYear.csv")
+
+library(xlsx)
+
+write.xlsx(x=Table,file ="FeeYear1.xlsx", sheetName = "Year1",col.names = T,row.names = F)
+```
+

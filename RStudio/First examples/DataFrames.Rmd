@@ -1,0 +1,79 @@
+---
+title: "DataFrames"
+author: "Yordan García Corrales"
+date: "3/5/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#DataFrame
+```{r}
+data01 <- data.frame(height=c(1.65,1.70,1.89),hair_size=c("short","medium","large"))
+data01
+```
+
+#Matrix to DataFrame
+```{r}
+matrix1<-matrix(sample(1:10,18,replace = T),ncol = 3,byrow = T); matrix1
+
+data02<- as.data.frame(matrix1); data02
+```
+#Get columns names in dataframe and rename it
+```{r}
+#Get columns names in dataframe
+print("Column names")
+names(data02)
+print("Row names")
+rownames(data02)
+
+colnames(data02)<-c('Sick','Healthy','Recovered')
+data02
+
+rownames(data02)<- c('Day1','Day2','Day3','Day4','Day5','Day6')
+data02
+```
+#Get data from dataFrame
+```{r}
+column2<-data02$Healthy; column2
+
+row2<-data02['Day2',]; row2 #This get a new dataframe with the row specified
+#Same dataRow1<-data02[c('Day2'),];dataRow1
+
+```
+
+```{r}
+#Another example
+dataRow1<-data02[2,];dataRow1
+
+#dataFramse 3*3
+dataRow2_to_4<-data02[2:4,]; dataRow2_to_4
+
+#dataFramse 6*2
+dataCol2_to_3<-data02[,2:3]; dataCol2_to_3
+```
+
+#Functions
+```{r}
+head(data02,2) #Get the first n  rows
+
+tail(data02,2)#Get the last n columns
+```
+#Get a data view
+```{r}
+str(data02)
+```
+
+#Get a summary of dataframe
+```{r}
+summary(data02)
+```
+
+#Create a new dataframe with a new row
+```{r}
+data02
+data02.2<- cbind(Days=rownames(data02),data02); data02.2
+```
+
