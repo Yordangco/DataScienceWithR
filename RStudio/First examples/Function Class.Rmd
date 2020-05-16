@@ -124,3 +124,48 @@ library(xlsx)
 write.xlsx(x=Table,file ="FeeYear1.xlsx", sheetName = "Year1",col.names = T,row.names = F)
 ```
 
+#Create own functions
+```{r}
+sumEvenNumbers<-function(n){
+  total<-0
+  for(cont in seq(1:n)){
+    if(cont%%2==0){
+      total<-total+cont
+    }
+  }
+  return(total)
+}
+
+sumEvenNumbers(10)
+```
+
+#Function Subtraction
+```{r}
+subtraction<- function(a,b){
+  return(a-b)
+}
+
+subtraction(10,5)
+```
+
+
+```{r}
+sale<-function(sales,percentage){
+  return(sales*percentage)
+}
+
+sale(100,0.10)
+```
+
+#Pasing an array to the function sale
+```{r}
+sales<-sample(10000:50000,10);sales
+discounts<-sample(10:40,10)/100;discounts
+
+#Using sale Function
+AllDiscounts<-sale(sales,discounts)
+
+data.frame(sales,discounts,AllDiscounts,FinalPrice=sales-AllDiscounts)
+
+```
+
