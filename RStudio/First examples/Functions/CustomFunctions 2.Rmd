@@ -1,0 +1,70 @@
+---
+title: "Custom functions 2"
+author: "Yordan García Corrales"
+date: "31/5/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+fireInsurance<- function(houseValue, years,isRural){#isRural true, isUrban false
+  result<-"Sin opción"
+  if(houseValue %in% 30001:59999 & years %in% 21:30){
+    result<-ifelse(isRural,houseValue*(0.010/100),houseValue*(0.015/100)) 
+  }else if(houseValue %in% 60000:89999 & years %in% 11:20){
+    result<-ifelse(isRural,houseValue*(0.015/100),houseValue*(0.020/100))
+  }else if(houseValue %in% 90000:150000 & years<=10){
+    result<-ifelse(isRural,houseValue*(0.020/100),houseValue*(0.025/100))
+  }else if(houseValue>150000){
+    result<-ifelse(isRural,houseValue*(0.025/100),houseValue*(0.03/100))
+  }
+  return(result)
+}
+fireInsurance(31000,9,TRUE); fireInsurance(31000,10,TRUE)
+fireInsurance(155000,8,TRUE); fireInsurance(155000,8,TRUE)
+fireInsurance(155000,8,TRUE); fireInsurance(155000,8,FALSE)
+fireInsurance(155000,35,TRUE); fireInsurance(155000,35,FALSE) 
+fireInsurance(125000,35,TRUE); fireInsurance(125000,35,FALSE)
+fireInsurance(35000,25,1); fireInsurance(35000,25,0) 
+fireInsurance(70000,18,1); fireInsurance(70000,18,0)
+fireInsurance(125000,5,1); fireInsurance(125000,5,0)
+
+```
+
+
+```{r}
+fireInsurance <- function(val,an,z){ # En total 18 lineas de código  
+  
+  # val es el valor de la vivienda.
+  # an es la cantidad de años de la vivienda.
+  # z es la zona de residencia
+  
+   result <- ifelse(z=="Rural" & an %in% 21:30 & val %in% 30000:59999, val*0.00010,
+             ifelse(z=="Rural" & an %in% 11:20 & val %in% 60000:89999,val*0.00015,
+             ifelse(z=="Rural" & an %in% 1:10 & val %in% 90000:150000,val*0.00020,
+             ifelse(z=="Rural" & val>150000,val*0.00025,
+              ifelse(z=="Urbana" & an %in% 21:30 & val %in% 30000:59999,val*0.00015,
+             ifelse(z=="Urbana" & an %in% 11:20 & val %in% 60000:89999,val*0.00020,
+             ifelse(z=="Urbana" & an %in% 1:10 & val %in% 90000:150000,val*0.00025,
+             ifelse(z=="Urbana" & val>150000,val*0.00030,
+                    "Sin opción de seguro"))))))))
+   
+   return(result)
+}
+
+
+
+```
+
+#Transform 2 variables in TRUE and FALSE
+```{r}
+array1<-c("Rural","Urbano","Rural","Rural")
+matchResult<-match(array1,"Rural",nomatch = 0)
+as.logical(matchResult)
+
+```
+

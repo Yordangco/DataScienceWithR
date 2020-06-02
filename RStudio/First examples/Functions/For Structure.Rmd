@@ -1,0 +1,139 @@
+---
+title: "For Structure"
+author: "Yordan García Corrales"
+date: "17/5/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#Using for statement
+```{r}
+dice<- 1:6
+for(value in dice){
+  print(paste0("The value is : ",value, " pow to 2 is :",value^2))
+}
+
+#Get all values in an array
+array01<-NULL
+for(value in dice){
+  array01[value]<-value**2
+}
+array01
+```
+
+```{r}
+clasification<- function(maxNumber){
+ clasif <- character(maxNumber)
+ for (i in 1:maxNumber) { 
+   if (i > 5) { 
+     texto <- paste(i, 'big')
+     print(texto) 
+     clasif[i] <- 'grande' 
+     
+   } else {
+     if (i > 2) { 
+       texto <- paste(i, 'medium') 
+       print(texto) 
+       clasif[i] <- 'medium' 
+     } else { 
+       texto <- paste(i, 'small') 
+       print(texto) 
+       clasif[i] <- 'small' 
+     } 
+   } 
+ }
+ return(clasif)
+}
+
+clasification(12)
+```
+
+#Retunr a data frame
+```{r}
+clasificationDataFrame<- function(maxNumber){
+ clasif <- character(maxNumber)
+ arraySizes<-rep(0,n)
+ texto<-""
+ for (i in 1:maxNumber) { 
+   if (i > 5) { 
+     texto <- paste(i, 'big')
+     clasif[i] <- 'grande' 
+     
+   } else {
+     if (i > 2) { 
+       texto <- paste(i, 'medium') 
+       clasif[i] <- 'medium' 
+     } else { 
+       texto <- paste(i, 'small') 
+       clasif[i] <- 'small' 
+     }
+     
+   } 
+    arraySizes[i]<-texto
+ }
+ return(data.frame(arraySizes,clasification=clasif))
+}
+
+clasificationDataFrame(12)
+```
+
+#Function that calculate mean,standard deviation, mediam
+```{r}
+gen_table <- function(Datas) { 
+  
+  name <- names(Datas) # Get columns
+  
+  amountCol <- length(name) 
+  
+  arrayCounter <- rep(0,amountCol)
+  columnName <- rep(0,amountCol)
+  means <- rep(0,amountCol)
+  stds <- rep(0,amountCol)
+  medians <- rep(0,amountCol)
+  
+
+  
+  for(counter in 1:amountCol){
+    mean <- mean(Datas[,counter])
+    stan_des<- sd(Datas[,counter])
+    median <- median(Datas[,counter]) 
+
+    arrayCounter[counter] <- counter    
+    columnName[counter] <- name[counter]
+    means[counter] <- round(median,2)
+    stds[counter] <- round(stan_des,2)
+    medians[counter] <- round(median,2)
+  
+  }
+  
+  return (data.frame(Number=arrayCounter,Name=columnName, Mean=means, Standard_Deviation=stds,Mediam=medians))
+}
+
+compliteData <- iris[,1:4]
+headData<-head(data,6);headData
+
+
+gen_table(headData)
+```
+
+#Using another database (cars)
+```{r}
+cars<-cars[,1:2]
+head(cars)
+
+gen_table(cars)
+```
+
+#Using another database (mtcars)
+```{r}
+cars2<-mtcars[,-1]
+head(cars2)
+
+gen_table(cars2)
+
+data() #Get all database that R has,
+```
+

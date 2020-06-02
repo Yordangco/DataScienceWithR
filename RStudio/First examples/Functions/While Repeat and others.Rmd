@@ -1,0 +1,77 @@
+---
+title: "While Repeat and others"
+author: "Yordan García Corrales"
+date: "19/5/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#Using While
+```{r}
+value<-0
+counter<-0
+while(value<50){
+  value<-value+sample(1:10,1)
+  counter<-counter+1
+}
+
+value;counter
+```
+
+#Using break
+```{r}
+for(i in 1:10){
+  print(i)
+  if(i==6){
+    break;
+  }
+}
+```
+
+#Using next
+```{r}
+for(i in 1:10){
+  if(i==6){
+    next;
+  }
+  print(i)
+}
+```
+
+#Using repeat
+```{r}
+value2<-0
+repeat{
+  value2<- print(value2+1)
+  if(value2==5){
+    break
+  }
+}
+```
+
+#Switch
+```{r}
+
+
+switchFuncion<- function(datas,option){
+  switch (option,
+  sum = sum(datas),
+  sd= sd(datas),
+  mean=mean(datas),
+  median=median(datas),
+  var=var(datas),
+  max=max(datas),
+  min=min(data))
+}
+
+datas<-sample(1:25,22)
+
+switchFuncion(datas,"mean")
+switchFuncion(datas,"sum")
+switchFuncion(datas,"max")
+
+```
+

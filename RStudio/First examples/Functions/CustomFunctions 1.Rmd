@@ -1,0 +1,238 @@
+---
+title: "customFunctions"
+author: "Yordan García Corrales"
+date: "24/5/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#Get a dataframe
+```{r}
+mean_min<- function(datas){
+  mean<- mean(datas)
+  min<-min(datas)
+  
+  return(data.frame(Mean=mean,Min=min))
+}
+
+mean_min(seq(1:6))
+```
+
+#Get th greatest
+```{r}
+greatest<-function(num1,num2){
+  result<-NULL
+  if(num1==num2){
+    result<-paste0("Iquals")
+  }else if(num1>num2){
+    result<-paste0("The greatest is num1 ",num1)
+  }else{
+    result<-paste0("The greatest is num2 ",num2)
+  }
+  return(result)
+}
+
+greatest(23,23)
+greatest(23,14)
+greatest(23,41)
+```
+
+#Sum number > 0
+```{r}
+
+sumGreater0<-function(numbers){
+  total<-sum(numbers[numbers>0])
+  return(total)
+}
+
+sumGreater0(sample(-5:5))
+```
+
+#Sum number < 0 but in positive
+```{r}
+sumLower0<-function(numbers){
+  total<-abs(sum(numbers[numbers<0]))
+  return(total)
+}
+
+sumLower0(sample(-5:5))
+```
+
+#Count how many numbers are greater than 0
+```{r}
+countGreater0<-function(numbers){
+  amount<-length(numbers[numbers>0])
+  return(amount)
+}
+numbers1<-sample(-10:10,10);sort(numbers1)
+countGreater0(numbers1)
+numbers2<-sample(-5:5,10);sort(numbers1)
+countGreater0(numbers2)
+```
+
+
+```{r}
+factor.count<-function(element){
+  if(is.factor(element)==TRUE){
+    table(element)
+  }else{
+    cat("Element is not a factor")
+  }
+}
+
+marital.status <- factor(x=c("married","single","widower","divorced","married","single"),levels=c("married","single","widower","divorced"))
+marital.status
+
+factor.count(marital.status)
+factor.count(c(1:3))
+```
+
+#Method that calculate a good health
+```{r}
+
+#Gender=1 Male, Gender=0 Female
+TMBHM <- function(kilog,height,age, gender=0){
+  
+  #Lista de ponderadores
+  p01 <- ifelse(gender==1,66.4730,655.0955) 
+  p02 <- ifelse(gender==1,13.7516,9.5634)
+  p03 <- ifelse(gender==1,5.0033,1.8449) 
+  p04 <- ifelse(gender==1,6.7550,4.6756) 
+
+  resultado <- round(p01 +(p02 * kilog) + (p03 * height) - (p04* age),0)
+  
+  return(resultado)
+}
+
+TMBHM(110,180,32,1)
+TMBHM(80,163,32)
+```
+
+#Method that calculate a good health + change
+```{r}
+#Gender=1 Male, Gender=0 Female
+#c =contexture 1=normal,Muscular 2, Overweight 0
+TMBHMC <- function(kilog,height,age, gender=1, c=2){
+  
+  #Lista de ponderadores
+  p01 <- ifelse(gender==1,66.4730,655.0955) 
+  p02 <- ifelse(gender==1,13.7516,9.5634)
+  p03 <- ifelse(gender==1,5.0033,1.8449) 
+  p04 <- ifelse(gender==1,6.7550,4.6756) 
+
+  result <- round(p01 +(p02 * kilog) + (p03 * height) - (p04* age),0)
+  
+  
+  if(c==0){
+    finalResult<-result*0.85
+  }else if(c==1){
+    finalResult<-result*1.10
+  }else{
+   finalResult<- result
+  }
+  return(round(finalResult,0))
+}
+TMBHMC(110,180,32,1,2)#Normal 2
+TMBHMC(110,180,32,1,1)#Muscular 1
+TMBHMC(110,180,32,1,0)#Overweight 0
+
+
+TMBHMC(110,180,32,0,2)#Normal 2
+TMBHMC(110,180,32,0,1)#Muscular 1
+TMBHMC(110,180,32,0,0)#Overweight 0
+
+```
+
+#Contribution to the variation rate
+```{r}
+contribution <- function(v1,v2){
+  
+  partic <- v1/sum(v1)
+  variac <- (v2-v1)/v1*100
+  ap_F <- partic*variac
+  sums <- c(sum(v1),sum(v2),sum(partic),((sum(v2)-sum(v1))/sum(v1))*100,sum(ap_F))
+  
+  tabla <- data.frame(A_Base=round(v1,2),A_Interest=round(v2,2),Part.=round(partic,2),
+                        Tasa.var=round(variac,2),Input=round(ap_F,2))
+  
+  R <- rbind(tabla,round(sums,2))
+  
+  return(R)
+  
+}
+
+ve1 <- sample(1:30,5)
+ve2 <- sample(1:30,5)
+
+Datas03 <- contribution(ve1,ve2)
+Datas03
+```
+
+#Read from xlsx
+```{r}
+prices<- readxl::read_xlsx("Precios.xlsx")
+prices
+
+Datas04 <- contribution(prices$Precio1,prices$Precio2)
+Datas04
+
+rownames(Datas04)<- c(prices$Descripcion_Producto,"Total")
+Datas04
+```
+
+#Normalization through the point of correspondence.
+```{r}
+correspondence <- function(element,array){#Execute each element in array
+  
+  result <- round((element-min(array))/(max(array)-min(array))*100,2)
+  
+  return(result)
+
+}
+
+array1 <- c(16,6,12,5,9,7,8,2,11,15)
+array1
+correspondence(array1,array1)
+```
+
+```{r}
+array2 <- sample(1000:10000,10)
+array2
+correspondence(array2,array2)
+```
+
+#Confidence intervals knowing, unknown
+```{r}
+confidence_Intervals_Knowing <- function(datas,c,st){ 
+  # datas 
+  # c= Statistic value z
+  # st= Standard Desviation.
+        
+      Data_inf <- mean(datas)-c*(st/sqrt(length(datas)))
+      Data_sup <- mean(datas)+c*( st/sqrt(length(datas)))        
+      
+  return(data.frame(Inferior_Limit=round(Data_inf,2),Sup_Limit=round(Data_sup,2)))}
+
+confidence_Intervals_Unknown <- function(datas,c){
+  
+      Data_inf <- mean(datas)-c*(sd(datas)/sqrt(length(datas)))
+      Data_sup <- mean(datas)+c*(sd(datas)/sqrt(length(datas))) 
+  
+  return(data.frame(Inferior_Limit=round(Data_inf,2),Sup_Limit=round(Data_sup,2)))}
+```
+
+#Examples
+```{r}
+Prices_1 <- sample(100:300,100,replace = T)
+Prices_1
+
+confidence_Intervals_Knowing(Prices_1,1.96,4) 
+```
+
+```{r}
+confidence_Intervals_Unknown(Prices_1,1.96) 
+```
+

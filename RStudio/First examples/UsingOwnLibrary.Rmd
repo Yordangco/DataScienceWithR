@@ -1,0 +1,27 @@
+---
+title: "UsingOwnLibrary"
+author: "Yordan García Corrales"
+date: "21/5/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#Using our library
+```{r}
+directory<-"C:/Users/Yordan Garcia Corral/Documents/Ciencia de datos/Practice and projects/trunk/RStudio/First examples/OwnLibrary/"
+
+#Set the directory
+setwd(directory)
+
+source("generalFunctions.R")
+
+datas<-sample(1:25,22)
+
+generalFunctions(datas,"mean")
+generalFunctions(datas,"sum")
+generalFunctions(datas,"max")
+```
+
