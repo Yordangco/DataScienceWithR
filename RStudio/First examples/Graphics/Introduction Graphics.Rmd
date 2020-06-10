@@ -1,0 +1,237 @@
+---
+title: "Introduction Graphics"
+author: "Yordan García Corrales"
+date: "6/6/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#Libraries
+```{r}
+suppressWarnings(suppressMessages(library(corrplot)))
+suppressWarnings(suppressMessages(library(plotrix)))
+suppressWarnings(suppressMessages(library(ggplot2)))
+suppressWarnings(suppressMessages(library(wordcloud)))
+suppressWarnings(suppressMessages(library(wordcloud2)))
+suppressWarnings(suppressMessages(library(readxl)))
+```
+
+#Simples graphics
+```{r}
+datas<-c(1:20)
+
+plot(datas)
+```
+
+```{r}
+barplot(datas,names.arg = c(1:20))
+```
+
+```{r}
+hist(datas)
+```
+
+```{r}
+pie(datas)
+```
+
+```{r}
+#iris database from R
+dataNumbers<-iris[,-5]#Delete the column number 5 that has text
+
+correlation<-cor(dataNumbers);correlation
+```
+
+
+```{r}
+#Graphic correlation
+corrplot(correlation,method = "shade")
+```
+
+# Custom Graphics
+```{r}
+barplot(datas,
+        main = "Age", #Title
+        ylab = "Year",
+        xlab = "Years",
+        cex.main = 1.5, # Title size
+        cex.axis = 0.9, # Size scale
+        cex.lab = .90) # Title x and y size
+          
+```
+
+#All simbols to graphic
+```{r}
+generateRPointShapes<-function(){
+  oldPar<-par()
+  par(font=2, mar=c(0.5,0,0,0))
+  y=rev(c(rep(1,6),rep(2,5), rep(3,5), rep(4,5), rep(5,5)))
+  x=c(rep(1:5,5),6)
+  plot(x, y, pch = 0:25, cex=1.5, ylim=c(1,5.5), xlim=c(1,6.5), 
+       axes=FALSE, xlab="", ylab="", bg="blue")
+  text(x, y, labels=0:25, pos=3)
+  par(mar=oldPar$mar,font=oldPar$font )
+}
+generateRPointShapes()
+```
+
+```{r}
+plot(datas,pch=10)
+```
+
+#Using color
+```{r}
+levels(iris$Species)#plot uses the 3 name to get 3 different colors
+plot(iris[,-5],col=iris$Species,
+    main="Datas from Iris using
+      two lines in the title")
+```
+
+# 3D Graphic
+```{r}
+pie3D(1:3,labels=1:3)
+```
+
+
+#Custom graphic
+```{r}
+#colors() #This Functions get all colors that R has.
+
+color1 <- "gray89"
+color2 <- "black"
+color3<-"green"
+
+plot(1:4,
+     pch="Ø",
+     cex=3,#Simbol size
+     col=color3)#Simbol color
+```
+
+#Color and grid
+```{r}
+par(bg=color1) # Background
+plot(1:5, # datas
+     pch="®", # Simbol
+     cex=3, # Simbol size
+     col=3) # Simbol color
+
+# Add a grid
+grid(4, # Same division in x and y
+     lwd=2, #Linea division size
+    col=color2) # Color de la división
+```
+
+#Different division in x and y
+```{r}
+par(bg=color1) # Background
+plot(1:5, # datas
+     pch="®", # Simbol
+     cex=3, # Simbol size
+     col=3) # Simbol color
+
+# Add a grid
+grid(nx = 3,#Division in x
+     ny = 4,#Division in y
+     lwd=2, #Linea division size
+    col=color2) # Color de la división
+```
+
+#Long-term average cost 
+```{r}
+par(bg=color1)
+
+curve(0.75*x**4,-1,1,asp=1,col="blue", lwd=3, main="Long-term average cost (CPLP)")
+grid(10,10,col="lightsteelblue4")
+```
+
+#Short-Term average cost
+```{r}
+par(bg=color1)
+curve(2*x**2,-0.4,0.4,asp=1,col="red", lwd=3, main="Short-Term average cost (CPCP)")
+grid(10,10,col="lightsteelblue4")
+```
+
+#Long-Term marginal cost
+```{r}
+# Long-Term marginal cost (CMLP)
+curve(1*x**1,-0.4,0.4,asp=1,col="black", lwd=3)
+grid(10,10,col="lightsteelblue4")
+```
+
+#Shot-term marginal cost
+```{r}
+# Shot-term marginal cost(CMCP)
+curve(1.5*x**1,-0.4,0.4,asp=1,col="green2", lwd=3)
+grid(10,10,col="lightsteelblue4")
+
+# Ingreso marginal, demanda e  ingreso promedio (IM=d=IP)
+# Segment by two pairs ordered (x1,y1); (x2,y2)
+segments(-0.9, # x1
+         0,  # y1
+         0.9, # x2
+         0,  # y2
+         col = "red", lwd=3)
+```
+
+
+#Put all graphic togethers
+```{r}
+par(bg="white")
+# Long-Term average cost (CPLP).
+curve(0.75*x**4,-1,1,asp=1,col="blue", lwd=3, 
+      main="Company balance perfect competition",
+      axes=F,# Delete axes x and y
+      xlab="Amount",
+      ylab="Cost") 
+
+# How to create rows
+# Row to axe y
+arrows(-1.04, # valor x1
+       -0.1, # valor y1
+       1, # valor x2
+       -0.1, # valor y2
+       lwd=3,
+       col="black") # xy xy
+
+# Row to axe x
+arrows(-1.04,-0.1,-1.04,0.85,lwd=3,col="black")
+
+#(CPCP)
+curve(2*x**2,-0.4,0.4,asp=1,col="red", lwd=3, add=T)#add=T, add the graphic to the previous
+
+#(CMLP)
+curve(1*x**1,-0.4,0.4,asp=1,col="black", lwd=3, add=T)
+
+#(CMCP)
+curve(1.5*x**1,-0.4,0.4,asp=1,col="green2", lwd=3, add=T)
+
+#(IM=d=IP)
+segments(-0.9,0, 0.9, 0, col = "red", lwd=3)
+
+# Curve text
+text(x = 0.45,
+     y = 0.3, 
+     labels = "CPCP", col="red",
+     adj = 0) # Adjust text
+
+text(x = 0.45, 
+     y = 0.4,
+     labels = "CMLP", col="black", adj = 0)
+
+text(x = 0.45, 
+     y = 0.6,
+     labels = "CMCP", col="green2", adj = 0)
+
+text(x = 0.9, 
+     y = 0.8,
+     labels = "CPLP", col="blue", adj = 0)
+
+
+text(x = 0.8, 
+     y = 0.05,
+     labels = "IM=d=IP", col="red", adj = 0)
+```
+

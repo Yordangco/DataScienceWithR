@@ -1,0 +1,104 @@
+---
+title: "Simple Graphics 1"
+author: "Yordan García Corrales"
+date: "7/6/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+suppressWarnings(suppressMessages(library(ggplot2)))
+```
+
+
+```{r}
+iris
+species<-iris$Species
+ggplot(iris, aes(species,fill=species)) + geom_bar()
+```
+
+#histogram
+```{r}
+datas01 <- c(1,2,3,2,3,5,4,5,6,7)
+
+datas03 <- data.frame(Letras=LETTERS[datas01],Datas=datas01)
+
+ggplot(data = datas03, aes(x=Datas)) + xlab("Datos del DF") + ylab("Cantidad") + 
+  geom_histogram(binwidth=0.5,#Bar size
+                 colour = "black", 
+                 fill = "white") + 
+  ggtitle("Datos del grafico") + 
+  theme_dark()
+```
+
+#Density
+```{r}
+ggplot(data = datas03, aes(x=Datas)) + xlab("Datas from df") + ylab("Amount") + 
+  geom_density(colour = "black", 
+               fill = "white") + 
+  ggtitle("Datos del grafico") + 
+  theme_dark()
+```
+
+#Another example
+```{r}
+radius <- 0:10 
+radius
+
+area_circ <- function(r){
+  
+  area <- pi*r^2
+  
+  return(area)
+}
+
+
+areas <- area_circ(radius) # Vector de áreas
+areas
+```
+
+```{r}
+plot(x = radius, y = areas, # x=radius y=area
+type="b", # "both", dots and lines #type="c", # Discontinued lines
+main="Circle area",
+xlab="Radius (r)",
+ylab=expression(Area == pi*r^2),
+col="red",
+pch=8) # Simbol
+```
+
+```{r}
+ggplot(data=iris, aes(Sepal.Length, Petal.Length, fill=Species)) + 
+  stat_smooth() + # Lines (smooth)
+  facet_wrap(~ Species) # Separate by species
+```
+
+
+```{r}
+ggplot(data=iris, aes(Petal.Length,fill=Species)) +
+geom_histogram() # Draw the histogram
+```
+
+```{r}
+ggplot(data=iris, aes(Petal.Length,fill=Species)) +
+geom_density(alpha=0.7) # Color intensity 0-1
+```
+
+#Word Graphic
+```{r}
+suppressWarnings(suppressMessages(library(readxl)))
+datasWords <- read_xlsx("GraficoPalabras.xlsx")
+datasWords
+```
+
+```{r}
+suppressWarnings(suppressMessages(library(wordcloud)))
+suppressWarnings(suppressMessages(library(wordcloud2)))
+datasWords$Palabra<-as.factor(datasWords$Palabra)
+
+wordcloud2(datasWords, size=1, color='random-dark')
+```
+

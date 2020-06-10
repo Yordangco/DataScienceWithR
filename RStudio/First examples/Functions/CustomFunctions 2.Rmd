@@ -68,3 +68,84 @@ as.logical(matchResult)
 
 ```
 
+#Proveedor 1: 1% x 45% + 2% x 28% + 3% x 27%
+#Proveedor 2: 1% x 79% + 2% x 13% + 3% x 8%
+
+```{r}
+prov_1 <- sum(0.01*0.45,0.02*0.28,0.03*0.27)
+prov_2 <- sum(0.01*0.79,0.02*0.13,0.03*0.08)
+
+prov_1; prov_2
+```
+
+#Obtener el costo de ambos proveedores, sin considerar rebajos
+```{r}
+cant <- 1850
+costo <- 1.10
+
+costo_prov_1 <- prov_1*cant*costo
+costo_prov_2 <- prov_2*cant*costo
+
+costo_prov_1;costo_prov_2
+```
+
+#Costo final considerando toda la información suministrada, provedor 1 rebaja 8 dolares
+```{r}
+costo_prov_1 <- prov_1*cant*costo
+costo_prov_2 <- prov_2*cant*costo + 8
+
+costo_prov_1;costo_prov_2
+```
+
+#Final: Automatizar todo el proceso.
+```{r}
+costo_prov <- function(v1,v2,q,c,d=0){
+  
+  # v1 es el vector de defectos.
+  # v2 es el vector de probabilidades.
+  # q es la cantidad a comprar.
+  # c es el costo por defecto
+  # d es la diferencia de precio final
+  
+  # se comprueba el tamaño de los vectores
+  
+  tv1 <- length(v1)
+  tv2 <- length(v2)
+  
+  
+  total <- ifelse(tv1!=tv2,"Vectores distintos, debe corregirlos",
+                  sum(v1*v2*q*c,d)) # se debe sumar la diferencia al final
+  
+  return(total)
+  
+}
+
+# Ejemplo con un caso incorrecto (vectores distintos)
+costo_prov(c(0.01,0.02,0.03),c(0.79,0.03,0.08,0.1),1850,1.10,8)
+```
+
+```{r}
+# Ejemplos de casos correctos (vectores iguales para ambos proveedores).
+
+# Crear  una tabla para el proveedor 1 (3 probabilidades)
+df1 <- data.frame(Errores=c(0.01,0.02,0.03),prob=c(0.45,0.28,0.27))
+df1
+# Crear  una tabla para el proveedor 2 (3 probabilidades)
+df2 <- data.frame(Errores=c(0.01,0.02,0.03),prob=c(0.79,0.13,0.08))
+df2
+```
+
+# Calculo y costo total para el proveedores
+```{r}
+# Calculo y costo total para el proveedor 1
+rp1 <- round(costo_prov(df1$Errores,df1$prob,1850,1.10),2)
+
+# Calculo y costo total para el proveedor 2
+rp2 <- round(costo_prov(df2$Errores,df2$prob,1850,1.10,8),2)
+
+# Comparación
+rp1 # cotso proveedor 1
+# Comparación
+rp2 # cotso proveedor 1
+```
+
