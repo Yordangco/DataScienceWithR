@@ -1,0 +1,245 @@
+---
+title: "Simple Graphics 2"
+author: "Yordan García Corrales"
+date: "10/6/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+```{r}
+suppressWarnings(suppressMessages(library(ggplot2)))
+suppressWarnings(suppressMessages(library(ggrepel)))
+suppressWarnings(suppressMessages(library(dplyr)))
+suppressWarnings(suppressMessages(library(tidyr)))
+```
+
+#Get data01 from iris
+```{r}
+data01<-iris
+head(data01)
+```
+
+#Prepare to graphic
+```{r}
+grap01<-ggplot(data = data01, aes(x=Sepal.Length,y=Sepal.Width,color=Species,shape=Species))
+grap01
+```
+
+#Get all function that has geom_
+```{r}
+apropos("geom_")
+```
+
+```{r}
+grap01+geom_bin2d()
+```
+
+```{r}
+grap01+geom_boxplot()
+```
+
+```{r}
+grap01+geom_violin()
+```
+
+```{r}
+graphic02<-grap01+geom_point()
+graphic02
+```
+
+#Change name in x and y to one a without "."
+```{r}
+grap03<-graphic02+scale_x_continuous("Sepal Width") +scale_y_continuous("Sepal Length")
+grap03
+```
+
+#Add title
+```{r}
+grap04<-grap03+ggtitle("Lineal relation between the Sepal Length and Width")
+grap04
+```
+#Move simbols
+```{r}
+grap05 <- grap04 + theme(legend.position = c(0.9, 0.2))
+grap05
+```
+#Center the title
+```{r}
+grap05 <- grap04 + theme(plot.title = element_text(hjust = 0.5))
+grap05
+```
+
+#Background Colors
+```{r}
+grap05 + theme_get()
+```
+
+```{r}
+grap05 + theme_light()
+```
+
+```{r}
+grap05+theme_linedraw()
+```
+
+```{r}
+grap05 +theme_dark()
+```
+
+```{r}
+grap05 + theme_minimal()
+```
+
+```{r}
+grap05+theme_void()
+```
+
+```{r}
+grap05+ geom_smooth() 
+```
+
+```{r}
+grap05+ geom_smooth(method = lm) #Establish lineal regresion
+```
+
+```{r}
+grap06 <- grap05 + facet_wrap(~Species)+ geom_smooth(method = lm)#Segmentation by Species
+grap06
+```
+
+```{r}
+clusters_iris <- kmeans(data01$Sepal.Width, 2,iter.max=100)
+
+clusters_iris$centers
+
+unique(clusters_iris$cluster)
+```
+
+```{r}
+data01$cluster <- clusters_iris$cluster
+head(data01)
+```
+
+```{r}
+ggplot(data = data01, aes(x=Sepal.Length, y=Sepal.Width, color=Species, shape=Species))  + geom_point() + 
+  scale_x_continuous("Sepal Length") + 
+  scale_y_continuous("Sepal Width") + 
+   ggtitle("Lineal relation between the Sepal Length and Width") +
+  
+  # Lines
+   geom_smooth(method = lm) + 
+  
+  # Segregation by clusters
+  facet_grid(Species ~ cluster)
+```
+
+```{r}
+ggplot(data = data01, aes(x=Sepal.Length, fill=Species))  + xlab("Sepal Length") + ylab("Amount") + facet_grid(Species ~ cluster) +  geom_histogram(binwidth=0.5) + ggtitle("Lineal relation between the Sepal Length and Width")
+```
+
+```{r}
+ggplot(data = data01, aes(x=Sepal.Length, fill=Species))  + xlab("Sepal Length") + ylab("Amount") + facet_grid(Species ~ cluster,scales = "free_y") +  geom_histogram(binwidth=0.5) + ggtitle("Lineal relation between the Sepal Length and Width")
+```
+
+#Text graphics
+```{r}
+DBText <- mtcars
+head(DBText)
+```
+
+```{r}
+ggplot(DBText, aes(wt, carb, label = rownames(mtcars))) +  geom_point()  + geom_label() + xlab("Pounds") + ylab("Carburettors") + ggtitle("Vehicule")
+```
+
+```{r}
+g001 <- ggplot(DBText, aes(wt, carb, label = rownames(mtcars), fill=factor(carb))) +  geom_point()
+g001
+```
+
+```{r}
+g002 <- g001 + xlab("Pounds") + 
+  ylab("Carburettors") + 
+  ggtitle("Vehicule") + 
+  scale_fill_discrete(name = "Q Carburettors") + 
+  theme_light(base_size = 10)
+g002
+```
+
+```{r}
+g003 <- g002 + geom_label_repel(label.padding = 0.2) # text size
+g003
+```
+
+```{r}
+g004 <- grap06 + geom_point(alpha = 0.2, position = "jitter", shape = 21) +
+  geom_violin(color = "red", alpha  = 0.2, size = 1)
+g004
+```
+
+```{r}
+g005 <- grap05 + geom_point(alpha = 0.2, position = "jitter", shape = 21) +
+  theme_light() 
+g005
+```
+
+```{r}
+g006 <- g005 + geom_vline(xintercept = 5.58, 
+                          colour="red", 
+                          linetype = 7)
+g006
+```
+
+```{r}
+g008 <- g005 + geom_vline(xintercept = c(5:7), # v vertical
+                          colour="red", 
+                          linetype = 7) +
+              geom_hline(yintercept = c(3:4), # h  horizontal
+                          colour="red", 
+                         linetype = 7)
+g008
+```
+
+```{r}
+diamonds_Heatmap <- data.frame(diamonds %>% group_by(cut) %>% summarise(depthPercent = mean(depth),
+            table = mean(table),
+            length = mean (x),
+            width = mean(y),
+            depth = mean(z)) %>%
+            gather(variable, valor, -cut))
+
+head(diamonds_Heatmap)
+```
+
+```{r}
+g005 <- ggplot(data = diamonds_Heatmap, mapping = aes(x = variable, y = cut)) +
+  geom_tile(aes(fill = valor), color = "white")
+g005
+```
+
+```{r}
+ggplot(data = diamonds_Heatmap, 
+       mapping = aes(x = variable, y = cut, 
+      label = sprintf("%0.1f", round(valor, digits = 2)))) + 
+  # Decimals
+  
+  ylab("Category") + 
+  ggtitle("Graphic with values inside.") +
+
+  geom_tile(aes(fill = valor), color = "white") +
+  geom_label() + theme(plot.title = element_text(hjust = 0.5))
+```
+
+```{r}
+g02 <- ggplot(iris, aes(iris$Species, fill=iris$Species)) + geom_bar()
+g02
+```
+
+
+```{r}
+g02 <- ggplot(iris, aes(iris$Species, fill=iris$Species)) + geom_bar() + 
+  coord_flip() # Este es el codigo que permite girar el grafico.
+g02
+```
+

@@ -1,0 +1,69 @@
+---
+title: "Proyecto"
+author: "Yordan García Corrales"
+date: "20/6/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+library(httr)
+urlTipoCambio<-"https://tipodecambio.paginasweb.cr/api/"
+urlCasosCovid<-"https://api.covid19api.com/country/costa-rica?from="
+```
+
+```{r}
+BaseDatos<-data.frame()
+
+extaerCasos<-function(datos){
+  aux<-NULL
+  if(!is.null(datos)){
+    for(a in contenidoCasosCovid){
+      aux<-c(aux,a$Confirmed)
+    }
+  }
+  return (aux)
+}
+
+extaerfechas<-function(datos){
+  aux<-NULL
+  if(!is.null(datos)){
+    for(a in contenidoCasosCovid){
+      aux<-c(aux,a$Date)
+    }
+  }
+  return (aux)
+}
+
+cargaDatos<-function(){
+  hoy<-today()
+  haceTresMeses<-seq(hoy, length = 2, by = "-3 months")[2]
+  tipoCambio <- GET(url =urlTipoCambio)
+  casosCovid<-GET(url=paste0(urlCasosCovid,hoy,"&to=",haceTresMeses))
+  BaseDatos<-data.frame(
+    Fecha=extaerfechas(casosCovid),
+    CantidadCovid=extaerCasos(casosCovid))
+  return(BaseDatos)
+}
+
+casosCovid <- GET(url = "https://api.covid19api.com/country/costa-rica?from=2020-03-19T00:00:00Z&to=2020-06-20T00:00:00Z")
+
+#status_code(result)
+#headers(result)
+#str(content(result)) #Muestra todo el contenido como texto.
+contenidoTipoCambio<-content(tipoCambio) #Devuelve el contenido el formato list
+contenidoTipoCambio
+
+contenidoCasosCovid<-content(casosCovid) #Devuelve el contenido el formato list
+length(contenidoCasosCovid)
+
+```
+## Carga de datos
+```{r}
+cargaDatos()
+```
+

@@ -1,0 +1,257 @@
+---
+title: "Regular expressions"
+author: "Yordan García Corrales"
+date: "18/6/2020"
+output: 
+  html_document:
+     toc: true
+     toc_depth: 6
+     number_section: true
+     toc_float: true
+     theme: readable
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+suppressWarnings(suppressMessages(library(stringr)))
+suppressWarnings(suppressMessages(library(DT)))
+suppressWarnings(suppressMessages(library(lubridate)))
+```
+# Regular Expressions
+```{r}
+text01 <- "The salary is $2000 and per year $24000 is not the same as 2000^2 then it is 4000000 millions"
+
+text02 <- "Please write to cisprocr.sa@gmail.com for more information"
+
+text01; text02
+```
+## Find a specific word
+```{r}
+str_view_all(string = text01, pattern ="2000" )
+str_view_all(string = text01, pattern ="\\$2000" )#To get a symbol that is from R
+```
+
+```{r}
+str_view_all(string = text01,pattern = "[0-9]")#All numbers
+str_view_all(string = text01,pattern = "[0-9]+")#All numbers together
+str_view_all(string = text01,pattern = "\\w")#Split letter by letter
+str_view_all(string = text01,pattern = "\\w+")#Split word by word
+str_view_all(string = text01,pattern = "\\W")#Get all that is not a letter
+str_view_all(string = text01,pattern = "\\W+")#Get all that is not a letter + symbols
+```
+
+### Get word with an specific pattern
+```{r}
+str_view_all(string = text01,pattern = "(?<=\\$)[0-9]+") #Get all number after $
+str_view_all(string = text01,pattern = "(?<=\\s)[0-9]+") #Get all number after space
+str_view_all(string = text01,pattern = "[0-9]+(?=\\s)")#Get all number before and space
+str_view_all(string = text01,pattern = "\\$[0-9]+(?=\\s)")#Get all number before and space + that has an $
+```
+
+## Get text 
+```{r}
+str_extract_all(string = text01,pattern = "2000") #Get all 2000
+numbersList<-str_extract_all(string = text01,pattern = "[0-9]+")#Get all numbers
+numbersList
+str_extract_all(string = text01,pattern = "(?<=\\$)[0-9]+")#Get numbers that begin wih $
+str_extract_all(string = text01,pattern = "\\$[0-9]+(?=\\s)")#Get all numbers that finish with an space and start with  $ 
+
+#Just to know this function return a List
+mode(numbersList)
+```
+
+### Change a str to number
+```{r}
+numericList<-as.numeric(numbersList[[1]])
+numericList
+sum(numericList)
+```
+## Change parts in a text
+```{r}
+provinces <- c("San José", "Alajuela", "Cartago",
+                "Heredia", "Guanacaste","Puntarenas",
+                "Limón")
+
+provinces
+```
+
+```{r}
+#Replace spaces
+str_replace_all(string = provinces,pattern = "[:space:]",replacement = "_")
+
+#Replace to NA when a word has an i
+listNA<-str_replace_all(string = provinces, pattern = "i", replacement = NA_character_)
+listNA
+```
+### Delete all NA characters
+```{r}
+is.na(listNA) #Logic values
+newList<-listNA[!is.na(listNA)]
+newList
+```
+
+### Replace word by word using gsub
+
+```{r}
+text01
+gsub(pattern = "salary",replacement = "gain", x = text01)
+
+```
+
+```{r}
+text01
+gsub(pattern = "is",replacement = "-", x = text01)
+```
+
+```{r}
+text01
+gsub(pattern = "\\$",replacement = "USD", x = text01)
+```
+
+## Creating text with space o without.
+```{r}
+paste("Word1","Word2")#The function add a space between each word.
+paste("Word1","Word2",sep = "")#Sep without space
+paste0("Word1","Word2")#Without space
+paste0("Date_",today())
+```
+
+## Function examples
+```{r}
+spaces <- function(v){
+
+  library(stringr) #Install
+  
+  # Delete spaces by position
+  un_esp <- str_replace_all(v, pattern="[:space:]+",replacement=" ")
+  
+  # Detele spaces at start and at the end.
+  result <- str_trim(un_esp, side = "both")
+  
+  return(result)
+}
+
+text06 <- c("Monday and Tuesday  ", 
+            "   Monday and Tuesday   ",
+            "   Monday    and   Tuesday   ")
+text06
+
+spaces(text06)
+```
+### Upper,lower, title
+```{r}
+text01
+str_to_upper(text01)
+str_to_lower(text01)
+str_to_title(text01)
+```
+#### Duplicate
+```{r}
+fruit <- c("apple", "pear", "banana")
+
+str_dup(fruit,2)
+str_dup(fruit,1:3)
+str_c("ba", str_dup("na", 0:5))
+```
+
+### Count letters
+```{r}
+fruit <- c("apple", "banana", "pear", "pineapple")
+
+str_count(fruit, "a")
+```
+
+### Remove vowels
+```{r}
+fruits <- c("one apple", "two pears", "three bananas")
+
+str_remove(fruits, "[aeiou]")# Remove one by place in fruits
+str_remove_all(fruits, "[aeiou]") 
+```
+### Creating logic arrays
+```{r}
+fruit <- c("apple", "banana", "orange", "pinapple")
+
+str_starts(fruit, "p") #True = starts with p
+str_starts(fruit, "p", negate = TRUE)#True != starts with p
+```
+
+```{r}
+str_ends(fruit, "e") #True = ends with e
+str_starts(fruit, "e", negate = TRUE)#True != starts with p
+```
+### General examples
+
+```{r}
+str_c("Letter", letters, sep = ": ")
+```
+
+```{r}
+str_c(letters, " is for", "...")
+str_c(letters, collapse = "")
+```
+## Stringr
+### All numbers have to have this format 888-888-8888
+```{r}
+strings <- c(" 219 733 8965", "329-293-8753 ", "banana", "595 794 7569",
+"387 287 6718", "apple", "233.398.9187 ", "482 952 3315",
+"239 923 8115 and 842 566 4692", "Work: 579-499-7527", "$1000",
+"Home: 543.355.3679")
+
+strings
+
+phonePattern<- "([2-9][0-9]{2})[- .]([0-9]{3})[- .]([0-9]{4})"
+
+phones<-str_extract(string =strings, pattern = phonePattern)
+phones
+
+phones<-phones[!is.na(phones)]
+phones
+
+formatPhones<-str_replace_all(phones,pattern = "[:space:]",replacement = "-")
+formatPhones
+# Use \\. because delete all elements. "." is reserved
+formatPhonesFinal<-gsub(formatPhones,pattern = "\\.",replacement = "-")
+formatPhonesFinal
+```
+#### Save in a data frame.
+
+```{r}
+Datas<- data.frame(Client=str_c("Client",1:9,sep = ": "),formatPhonesFinal)
+Datas
+```
+
+### Creating a function
+
+```{r}
+Tel_USA<-function(numbers){
+  library(stringr)
+  
+  phonePattern<- "([2-9][0-9]{2})[- .]([0-9]{3})[- .]([0-9]{4})"
+
+  phones<-str_extract(string =numbers, pattern = phonePattern)
+  phones<-phones[!is.na(phones)]
+  
+  phones<-str_replace_all(phones,pattern = "[:space:]",replacement = "-")
+  phones<-gsub(phones,pattern = "\\.",replacement = "-")
+  
+  n<-length(phones)
+  
+  Datas<- data.frame(Client=str_c("Client",1:n,sep = ": "),phones)
+  return(Datas)
+}
+
+strings <- c(" 219 733 8965", "329-293-8753 ", "banana", "595 794 7569",
+"387 287 6718", "apple", "233.398.9187 ", "482 952 3315",
+"239 923 8115 and 842 566 4692", "Work: 579-499-7527", "$1000",
+"Home: 543.355.3679")
+
+Tel_USA(strings)
+
+strings2<-rep(strings,3)
+Tel_USA(strings2)
+```
+

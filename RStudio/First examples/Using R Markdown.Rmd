@@ -1,0 +1,138 @@
+---
+title: "Using R Markdown"
+author: "Yordan García Corrales"
+date: "14/6/2020"
+output: 
+  html_document:
+    code_folding: hide #Hide the chunks, you can use show to show all
+    toc: true #Create a menu
+    toc_dept: 6 #Max amount of subtitle can has a title
+    number_section: true #Numeration
+    toc_float: true #Float menu
+    theme: cerulean #Color titles and subtitles or format
+    #Examples : “cosmo”, “flatly”, “journal”, “lumen”, “paper”, “readable”, “sandstone”, “simplex”, “spacelab”, “united” and “yeti”
+    highlight: tango # Document format: pygments, tango, espresso, zenburn, kate, monochrome, breezedark, haddock y textmate.
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Load an image
+![](LogoR.png){width=100%} 
+
+
+# Using a calculation in a text
+```{r}
+va1 <- sample(1:10,1)
+va2 <- va1**2
+```
+
+# Block of text
+~~~
+This is a block in where you can writen something important.
+The square root of `r va1 ` is  `r va2 `.
+
+~~~
+The square root of `r va1 ` is  `r va2 `.
+
+
+```{r,include=FALSE}
+#This is to hide a chunk
+h<-"This is not going to appear"
+h
+```
+
+```{r,echo=FALSE}
+#This is to hide a chunk
+h<-"Evaluated but no show the assignment, echo=False"
+h
+```
+
+```{r,eval=FALSE}
+#This is to hide a chunk
+h<-"Not evaluated just show the assignment, eval=False"
+x<-3+5
+h
+x
+```
+
+```{r}
+#Title size
+
+y<-"Just writing"
+y
+```
+# R Markdown1
+## R Markdown2
+### R Markdown3
+#### R Markdown4
+##### R Markdown5
+###### R Markdown6
+
+```{r}
+#<div style="text-align: justify">
+```
+
+<div style="text-align: justify">
+
+This is a parragrah about how you can aline the text in RStudio. You can use different ways like center,justify and right.Just to add something else that allow the text see the justify action.
+
+
+# Vignette
+Text
+
+- One
+- Two
+
+or 
+
+Text
+
+1. One
+2. Two
+
+or
+
+Text
+
+* One
+* Two
+  + Two one
+    - Two one one
+    
+# *Italic*
+# **Bold**
+# ***Italic and Bold***
+
+# Links
+<https://www.google.com>
+
+[**Google**](https://www.google.com)
+
+[**Google links with comment**][1]
+
+[1]: https://www.google.com  "In this page you can search anything."
+
+
+#  How to create a note
+Second world war began in 1939 [^1]
+
+[^1]: This started in Germany
+
+# Equation using latex as a format
+
+This is in the same line 1 ) $\left( \frac{1}{n} \right) ^ 2$ , 2 ) 
+$\frac{n!}{k!(n-k)!} = \binom{n}{k}$ 
+
+Using a second linea with \$\$
+
+$$\left( \frac{1}{n} \right) ^ 2$$
+
+# Using color
+
+<span style="color:blue">Datas</span>
+
+<span style="color:red">**Datas**</span>
+
+<span style="color:green">***Datas***</span>
