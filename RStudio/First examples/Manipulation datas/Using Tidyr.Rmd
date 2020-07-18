@@ -1,0 +1,98 @@
+---
+title: "Using Tidyr"
+author: "Yordan García Corrales"
+date: "26/6/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+suppressWarnings(suppressMessages(library(dplyr)))
+suppressWarnings(suppressMessages(library(tidyr)))
+```
+# Tidyr
+```{r}
+job <- data.frame(read.csv("Empleo_Trim_CR.csv",sep=";"))
+head(job ,n=15)[,1:3]
+```
+
+```{r}
+countColumns<-dim(job)[2] #Count columns
+```
+## Change rows to columns
+```{r}
+job<-gather(data = job, key = "TRIM", value = "Employees", 2:countColumns)
+head(job,n=15)
+```
+### Clear data
+```{r}
+job$TRIM<-gsub(job$TRIM,pattern = "trimestre.",replacement = "")
+job
+```
+
+```{r}
+job$Rubro<-gsub(job$Rubro,pattern = "Total de ocupados",replacement = "Occupied")
+
+job$Rubro<-gsub(job$Rubro,pattern = "Auxiliar familiar no remunerado",replacement = "Aux. Familiar")
+job
+```
+#### Split data
+```{r}
+job2<-separate(data = job,col = "TRIM",into = c("TRIM","Year"))
+job2
+```
+#### Add a new column
+```{r}
+job2<-job2 %>% mutate(TR_AN= paste(TRIM,"-",Year))
+job2
+```
+#### Using datas
+```{r}
+Occup<-job2 %>% filter(Rubro=="Occupied")
+Occup
+```
+
+### Graphic
+```{r}
+plot(x=Occup$Employees,ylab = "Occupied",type = "l")
+```
+```{r}
+suppressWarnings(suppressMessages(library(ggplot2)))
+
+ggplot(Occup, aes(y=Employees, x=Year, col=TRIM)) + 
+  geom_point(size=2) + 
+  ggtitle("Employee in Costa Rica")
+```
+### Using unite
+```{r}
+#this function delete the columns use it to create the new one.
+job4<-job2 %>% unite(col = Rubro2,sep = "-",Rubro,TRIM)
+job4
+```
+
+### Little report
+```{r}
+job5<-data.frame(job2 %>% group_by(Rubro) %>% summarise(Averag_Emp=mean(Employees)))
+
+job5
+```
+
+### Reverse process
+```{r}
+job2
+
+# Detele columns
+job6<-job2[,-c(2:3)]
+job6
+
+```
+
+```{r}
+job6<-spread(data = job6,TR_AN,Employees)
+job6
+```
+

@@ -1,0 +1,183 @@
+---
+title: "Data exploration"
+author: "Yordan García Corrales"
+date: "17/7/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+suppressWarnings(suppressMessages(library(rlang)))
+suppressWarnings(suppressMessages(library(lubridate)))
+suppressWarnings(suppressMessages(library(visdat)))
+suppressWarnings(suppressMessages(library(DataExplorer)))
+suppressWarnings(suppressMessages(library(SmartEDA)))
+suppressWarnings(suppressMessages(library(ggcorrplot)))
+suppressWarnings(suppressMessages(library(inspectdf)))
+```
+
+```{r}
+Datas <- read.csv("BD_T04.csv",header = T,sep = ";", dec= "," )
+
+# this has some errors
+Datas01 <- read.csv("BD_T04_errores.csv",header = T,sep = ";", dec= "," )
+
+head(Datas)
+```
+
+```{r}
+names(Datas)
+
+```
+
+```{r}
+names(Datas01)
+```
+
+## Type of variables
+```{r}
+vis_dat(Datas)
+```
+
+```{r}
+Datas$Fecha <- dmy(Datas$Fecha)
+vis_dat(Datas)
+```
+
+## Errors
+```{r}
+vis_miss(Datas)
+```
+
+```{r}
+vis_miss(Datas01)
+```
+
+```{r}
+plot_intro(Datas)
+```
+
+```{r}
+plot_intro(Datas01)
+```
+
+```{r}
+plot_missing(Datas) 
+```
+
+```{r}
+plot_missing(Datas01) 
+```
+
+## Histograms for numeric variables
+```{r}
+plot_histogram(Datas)
+```
+
+```{r}
+plot_density(Datas)
+```
+
+```{r}
+plot_boxplot(Datas, by="Vendedor")
+```
+
+### Graphic text, count
+```{r}
+plot_bar(Datas)
+```
+
+```{r}
+plot_boxplot(Datas, by="Residencia")
+```
+
+```{r}
+plot_prcomp(Datas)
+```
+```{r}
+plot_qq(Datas)
+```
+
+```{r}
+plot_qq(Datas, by="Vendedor")
+```
+
+## Using SmartEDA
+```{r}
+ExpData(Datas01,2)
+```
+
+```{r}
+ExpNumViz(Datas)
+```
+```{r}
+ExpCatViz(Datas)
+```
+```{r}
+ExpCTable(Datas)
+```
+
+```{r}
+ExpOutQQ(Datas)
+```
+
+## Correlation
+```{r}
+Datasnum <- dplyr::select_if(Datas, is.numeric)
+
+correlation <- cor(Datasnum)
+correlation
+```
+
+```{r}
+ggcorrplot(correlation, lab=T)
+```
+```{r}
+ggcorrplot(correlation, lab=T,type = "upper")
+```
+
+## Using inspectdf
+```{r}
+corr_df <- inspect_cor(Datasnum, alpha=0.01)
+corr_df
+```
+
+```{r}
+show_plot(corr_df, alpha=0.01)
+```
+```{r}
+show_plot(corr_df)
+```
+```{r}
+inspect_types(Datas)
+```
+
+```{r}
+show_plot(inspect_types(Datas))
+```
+
+```{r}
+show_plot(inspect_cat(Datas))
+```
+
+```{r}
+show_plot(inspect_imb(Datas))
+```
+```{r}
+show_plot(inspect_num(Datas))
+```
+```{r}
+show_plot(inspect_na(Datas01))
+```
+
+```{r}
+show_plot(inspect_cor(Datas))
+```
+
+```{r}
+show_plot(inspect_mem(Datas))
+```
+

@@ -1,0 +1,245 @@
+---
+title: "DataBase 1"
+author: "Yordan García Corrales"
+date: "3/7/2020"
+output: 
+  html_document:
+     toc: true
+     toc_depth: 6
+     number_section: true
+     toc_float: true
+     theme: readable
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+suppressWarnings(suppressMessages(library(dplyr)))
+suppressWarnings(suppressMessages(library(tidyr)))
+suppressWarnings(suppressMessages(library(lubridate)))
+suppressWarnings(suppressMessages(library(DT)))
+
+Sys.setlocale(locale="es_ES.UTF-8") # para uso de los nombres de días y meses en español
+```
+
+
+# DataBase 1
+## Creating a Database
+```{r}
+DB <- data.frame(read.csv2("BD1.csv"))
+datatable(head(DB))
+```
+## Types in database
+```{r}
+str(DB)
+```
+
+### Transform datas
+```{r}
+DB$Fecha <- dmy(DB$Fecha) #Now Fecha is Date
+datatable(head(DB))
+```
+
+```{r}
+str(DB)
+```
+
+## Add new datas
+```{r}
+# Add Selss
+DB1 <- DB %>% mutate(Sells=Cantidad*Precio.Unitario)
+
+# Add Minutes
+DB2 <- DB1 %>% mutate(Minutos=round(Horas_en_venta*60,0))
+
+# Add week's day
+DB3 <- DB2 %>% mutate(Dia=wday(Fecha,label = T,abbr = F))
+
+# Add group of week
+DB4 <- DB3 %>% mutate(Group_Days=ifelse(Dia=="sábado" | Dia=="domingo",
+                                      "weekend", "weekday"))
+datatable(head(DB4))
+```
+## Example 1
+#Know if the seller sells in a different place
+```{r}
+DB5<-DB4 %>% mutate(kindplace=ifelse(Residencia==Ruta,"Internal","External"))
+datatable(head(DB5))
+```
+
+#If it is external you have to add the 0.5% of Sells to the seller
+```{r}
+DB6<- DB5 %>% mutate(AmountReco=round(ifelse(kindplace=="External",Sells*0.005,0)))
+datatable(head(DB6))
+```
+## Example 2
+#Calculate the total to pay for each employee
+```{r}
+#Calcula the procentaje
+DB7<-DB6 %>% mutate(ProcenComision=as.double(ifelse(Group_Days=="weekend" & kindplace=="External",0.025,
+                                     ifelse(Group_Days=="weekday" & kindplace=="External",0.02,
+                                            ifelse(Group_Days=="weekday" & kindplace=="Interal",0.015,0.01)))))
+datatable(head(DB7))
+```
+
+```{r}
+DB8 <- DB7 %>% mutate(AmountByComision=Sells*ProcenComision)
+DB9 <- DB8 %>% mutate(TotalPay=AmountByComision+AmountReco)
+datatable(head(DB9))
+```
+#New columns
+```{r}
+DB10 <- DB9 %>% mutate(Rentab_min=round(Sells/Minutos,2)) 
+
+datatable(head(DB10))
+```
+
+```{r}
+DB11 <- DB10 %>% mutate(Part_PT=round(TotalPay/sum(TotalPay),4)*100) 
+
+datatable(head(DB11))
+```
+
+```{r}
+DB12 <- DB11 %>% mutate(Start_Selling=Edad-Años_Experiencia)
+
+datatable(head(DB12))
+
+#Experience
+range(DB12$Años_Experiencia)
+```
+
+```{r}
+DB13 <- DB12 %>% mutate(Rango_Exp=
+                ifelse(Años_Experiencia %in% 1:4,"less than 5",
+                ifelse(Años_Experiencia %in% 5:10,"between 5 and 10",
+                ifelse(Años_Experiencia %in% 11:20,"between 11 and 20",
+                ifelse(Años_Experiencia %in% 21:30,"between 21 and 30","more than 30 years")))))
+
+datatable(head(DB13))
+```
+
+#Range of sellings
+```{r}
+range(DB13$Sells)
+```
+#Categority by type of employee
+```{r}
+DB14 <- DB13 %>% mutate(Type_Seller=
+                ifelse(Sells %in% 1:1000,"New",
+                ifelse(Sells %in% 1001:300000,"Average",
+                ifelse(Sells %in% 300001:600000,"Good",
+                "Excelent"))))
+
+datatable(head(DB14))
+```
+
+#Sumarize
+```{r}
+R01 <- DB14 %>% group_by(Type_Seller) %>% count(Type_Seller)
+R01
+```
+
+#Sumarize by product
+```{r}
+R02 <- DB14 %>% group_by(Producto) %>% summarise(prom=round(mean(Sells),2))
+R02
+```
+#Datas from begining database
+```{r}
+v01<-names(DB)
+
+v01
+```
+#Datas from last database
+```{r}
+v02<-names(DB14)
+v02
+```
+## Tarea
+### Parte 1
+b. Debe crear 5 variables nuevas adicionales y distintas a las vistas en clase usando como punto de partida la BD14 y para ellas hacer lo siguiente:
+
+1. Variable 1 a la BD15 que usa como insumo la BD14.
+```{r}
+#Si el vendedor es excelente se contempla un 2% de bono extra.
+BD15<-DB14 %>% mutate(Bono_Extra=ifelse(Type_Seller=="Excelent",0.02,0))
+datatable(head(BD15))
+```
+
+2. Variable 2 a la BD16 que usa como insumo la BD15.
+```{r}
+#Calcula dias extra de vacaciones de acuerdado a los años de experiencia
+BD16 <- BD15 %>% mutate(DiasExtra_Vacaciones=
+                ifelse(Años_Experiencia %in% 1:4,2,
+                ifelse(Años_Experiencia %in% 5:10,5,
+                ifelse(Años_Experiencia %in% 11:20,7,
+                ifelse(Años_Experiencia %in% 21:30,9,10)))))
+
+datatable(head(BD16))
+```
+
+3. Variable 3 a la BD17 que usa como insumo la BD16.
+```{r}
+#Calcula el total de días de vacaciones que tiene por año
+BD17<-BD16 %>% mutate(Vacaciones_Totales=DiasExtra_Vacaciones+12)
+datatable(head(BD17))
+```
+
+4. Variable 4 a la BD18 que usa como insumo la BD17.
+```{r}
+#Si la ruta del producto es distinta a la de residencia se debe destinar 1500 colones extra de #gasolina de lo contrario solo 500
+BD18<-BD17 %>% mutate(Gasolina_Extra=ifelse(Residencia==Ruta,500,1500))
+datatable(head(BD18))
+```
+
+5. Variable 5 a la BD19 que usa como insumo la BD18.
+```{r}
+#Se contabiliza un total de gastos de gasolina sumando el gasto extra más los 20000 que #siempre se destinan.
+BD19<-BD18 %>% mutate(Gasolina_Total=Gasolina_Extra+20000)
+datatable(head(BD19))
+```
+ii. Cada variable que usted crea debe tener un propósito que ayude a resolver un problema y usted debe explicar en un breve párrafo cada una de ellas (debe ser creadas por usted y no ser iguales a las de ningún otro compañero, ni de generaciones anteriores)
+
+~~~
+Bono_Extra: Si el vendedor es excelente se contempla un 2% de bono extra como recompenza
+
+DiasExtra_Vacaciones: Calcula los dias extra de vacaciones de acuerdado a los años de experiencia
+
+Vacaciones_Totales: Calcula el total de días de vacaciones que tiene por año.
+
+Gasolina_Extra: Si la ruta del producto es distinta a la de residencia se debe destinar 1500 colones extra de gasolina de lo contrario solo 500
+
+Gasolina_Total: Se contabiliza un total de gastos de gasolina sumando el gasto extra más los 20000 que siempre se destinan.
+~~~
+
+### Parte 2
+
+a. Dos resúmenes usando las variables vistas en clase.
+```{r}
+#Resumen de promedio de cada producto por cantidad
+Resumen1<- BD19 %>% group_by(Producto) %>% summarise(Prom_Cantidad=round(mean(Cantidad),2))
+datatable(Resumen1)
+```
+
+```{r}
+#Promedio de total por comision segun venderor
+Resumen2<- BD19 %>% group_by(Vendedor) %>% summarise(Prom_Cantidad_Comision=round(mean(AmountByComision),2))
+datatable(Resumen2)
+```
+
+b. Dos resúmenes usando las variables nuevas creadas por usted.
+```{r}
+#Promedio de vacaciones por vendedor
+Resumen3<- BD19 %>% group_by(Vendedor) %>% summarise(Prom_vacaciones=round(mean(Vacaciones_Totales),2))
+datatable(Resumen3)
+```
+
+```{r}
+#Promedio de vacaciones extra agrupado por vendero y tipo de vendedor (Good,Average,Excelent)
+Resumen4<- BD19 %>% group_by(Vendedor,Type_Seller) %>% summarise(Prom_vacaciones=round(mean(DiasExtra_Vacaciones),2))
+datatable(Resumen4)
+```
+

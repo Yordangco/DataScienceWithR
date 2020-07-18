@@ -1,0 +1,95 @@
+---
+title: "Manipulating time series"
+author: "Yordan García Corrales"
+date: "16/7/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+suppressWarnings(suppressMessages(library(lubridate)))
+suppressWarnings(suppressMessages(library(dplyr)))
+suppressWarnings(suppressMessages(library(tidyr)))
+suppressWarnings(suppressMessages(library(xts)))
+suppressWarnings(suppressMessages(library(dygraphs)))
+```
+
+```{r}
+sell_days <- sample(2000:7000,365)
+head(sell_days)
+
+serie_day<- ts(sell_days, start = c(2018,1), frequency = 365)
+serie_day
+```
+
+```{r}
+sell_month<-sample(2000:7000,12)
+serie_month<- ts(sell_month, start = c(2018,1), frequency = 12)
+serie_month
+```
+
+```{r}
+sell_week<-sample(2000:7000,52)
+serie_week<- ts(sell_week, start = c(2018,1), frequency = 52)
+serie_week
+```
+
+```{r}
+sell_trimestral<-sample(2000:7000,4)
+serie_trimestral<- ts(sell_trimestral, start = c(2018,1), frequency = 4)
+serie_trimestral
+```
+
+# Example
+
+```{r}
+dates <- ymd("2019-01-01") + 0:364
+
+#frist datas
+head(dates)
+
+#Last datas
+tail(dates)
+
+d_dates <- weekdays(dates)
+table(d_dates)
+
+d_dates2 <- wday(dates,label = T)
+head(d_dates2)
+```
+## Filter
+```{r}
+filterDates<-dates[!weekdays(dates) %in% c("sábado","domingo")]
+
+head(weekdays(filterDates))
+```
+
+```{r}
+holydays=dmy(c("1/1/2019","1/5/2019","25/7/2019","2/8/2019","15/8/2019","12/10;2019","25/12/2019"))
+holydays
+```
+
+```{r}
+#Delete holidays
+filterDates2<-filterDates[!filterDates %in% holydays]
+head(weekdays(filterDates2))
+```
+
+```{r}
+tam <- length(filterDates2)
+tam 
+
+serie <- xts(rnorm(tam),filterDates2)
+graphic <- plot(serie, main = "Example time serie")
+graphic
+```
+
+```{r}
+dygraph(serie,xlab = "Date", ylab = "Value",main = "Example time serie") %>%
+  dySeries(label = "TBP") %>%
+  dyRangeSelector()
+```
+

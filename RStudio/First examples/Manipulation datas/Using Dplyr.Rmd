@@ -1,0 +1,162 @@
+---
+title: "Using Dplyr"
+author: "Yordan García Corrales"
+date: "25/6/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+suppressWarnings(suppressMessages(library(dplyr)))
+```
+
+##Using Dplyr
+### Get datas
+```{r}
+sinpe <- data.frame(readxl::read_xlsx("Datos_Sinpe.xlsx"))
+#sinpe <- head(sinpe,n=10)
+sinpe
+```
+#### Functions
+```{r}
+select(sinpe,1,3) #Using column number
+```
+
+```{r}
+select(sinpe,Valor_liquidado_SINPE,Dias_PIB) #Using column name
+```
+
+```{r}
+select(sinpe,-Dias_PIB) #Without Dias_PIB
+```
+
+```{r}
+select(sinpe, -c(Liquidado_Diario, PIB_Nominal))#Without several columns
+```
+
+
+```{r}
+select(sinpe, starts_with("v")) #Start with v
+```
+
+```{r}
+select(sinpe, ends_with("B"))#End with B
+```
+
+```{r}
+select(sinpe, contains("N"))
+select(sinpe, contains("n"))#it is no case sensitive
+```
+
+```{r}
+select(sinpe, matches(".N."))  # silimar to contains but using a regular expresion
+```
+
+#### Sort datas
+```{r}
+select(sinpe,c(Periodo,PIB_Nominal,SINPE_PIB),everything())
+```
+
+```{r}
+#Ascendence
+arrange(sinpe,c(Valor_liquidado_SINPE))
+```
+
+```{r}
+#Descendence
+arrange(sinpe, desc(Valor_liquidado_SINPE))
+```
+
+#### Rename
+```{r}
+rename(sinpe, VLS = Valor_liquidado_SINPE)#NewName= oldName
+```
+
+#### Adding datas
+```{r}
+#Transforming data to numeric
+sinpe$Liquidado_Diario<-as.numeric(sinpe$Liquidado_Diario)
+sinpe$Periodo<-as.numeric(sinpe$Periodo)
+sinpe$SINPE_PIB<-as.numeric(sinpe$SINPE_PIB)
+sinpe$PIB_Nominal<-as.numeric(sinpe$PIB_Nominal)
+sinpe$Dias_PIB<-as.numeric(sinpe$Dias_PIB)
+```
+
+```{r}
+mutate(sinpe, per_capitaValue = Liquidado_Diario / 5.5)#Add
+
+```
+
+
+```{r}
+#This is another way to add a column
+sinpe$Hours_PIB<- sinpe$Dias_PIB*24
+sinpe
+```
+#### Filter
+```{r}
+filter(sinpe,Hours_PIB<1000)
+```
+
+```{r}
+filter(sinpe,Hours_PIB<1000 & SINPE_PIB<8.5)
+```
+
+### Group datas
+```{r}
+cars <- head(mtcars,n=20)
+cars
+```
+
+```{r}
+by_cyl <- group_by(cars, cyl)
+summarise(by_cyl, mean(mpg), mean(hp))
+```
+#### Using operator PIPE
+```{r}
+#This calculate the cars cyl's mean
+cars %>% filter(cyl== 4) %>% summarise(mean(hp))
+```
+#### Extract datas
+```{r}
+x <- sort(sample(1:100,50))
+x
+```
+
+```{r}
+v_log <- between(x, 20, 40)#It is going to be true if the number is between 20-40
+v_log
+```
+
+```{r}
+x[v_log]#Get the right values
+```
+
+#### Add dataFrames
+
+```{r}
+one <- mtcars[1:4, ]
+two <- mtcars[11:14, ]
+
+one; two
+```
+
+```{r}
+three <- mtcars[,1:4]
+four <- mtcars[,5:11]
+
+head(three); head(four)
+```
+
+##### Add rows
+```{r}
+bind_rows(one,two)
+```
+##### Add columns
+```{r}
+bind_cols(three,four)
+```
+

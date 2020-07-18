@@ -1,0 +1,420 @@
+---
+title: "Manipulating dates lubridate"
+author: "Yordan García Corrales"
+date: "12/7/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+suppressWarnings(suppressMessages(library(lubridate)))
+suppressWarnings(suppressMessages(library(dplyr)))
+suppressWarnings(suppressMessages(library(tidyr)))
+suppressWarnings(suppressMessages(library(xts)))
+```
+
+# Format
+```{r}
+ymd("2018-01-25") 
+
+dmy("25-01-2018") 
+
+ymd("1989-05-17")
+
+ymd("2015 Oct 21")
+
+ydm("2014 07 de Octubre")
+
+ydm("2014 07 of October")
+```
+#Exception 2 numbers day, 2 number month, 4 number year
+```{r}
+mdy("Marzo 15, 2019")
+
+# Day, month, year
+dmy(25081985)
+
+# month, year,day
+myd(08198525)
+```
+#This you can use just one number /
+```{r}
+date04<-ymd("1920/1/2")
+```
+## Operations
+
+### General
+```{r}
+date04
+
+date04 + days(2)
+
+date04 + months(2)
+
+```
+### Using difftime
+```{r}
+
+systemDate<-Sys.Date()
+
+pastDate<- as.Date("1997-05-09")
+
+#“auto”, “secs”, “mins”, “hours”, “days”, “weeks”
+difftime(systemDate,pastDate,units = "weeks")
+
+difftime(systemDate,pastDate,units = "hours")
+
+Minus<-difftime(systemDate,pastDate,units = "mins")
+Minus
+as.numeric(Minus)
+```
+```{r}
+days<-dmy(c("1/10/2011","2/2/2012","3/4/2012","6/8/2012"))
+days
+
+diff(days)
+```
+### Logic values
+```{r}
+systemDate > pastDate
+systemDate == pastDate
+systemDate != pastDate
+```
+### Serie dates
+```{r}
+systemDate+ 0:10
+```
+### Example
+
+```{r}
+example_dates <- read.csv("fecha_ejemplo.csv",header = T,sep = ";", dec= "," )[,1:4]
+
+# Primeras 10 filas
+head(example_dates,10)
+
+str(example_dates)
+```
+
+```{r}
+#Good format
+example_dates$X <- as.Date(example_dates$X,"%d/%m/%Y") 
+head(example_dates,10)
+```
+
+```{r}
+weeks<-weekdays(example_dates$X)
+
+head(weeks)
+```
+
+```{r}
+months<-month(example_dates$X)
+head(months)
+```
+
+```{r}
+days<-day(example_dates$X)
+
+head(days)
+```
+
+```{r}
+#Get all Jueves
+
+Thursdays<-weeks=="jueves"
+
+newData<-example_dates[Thursdays,]
+
+head(weekdays(newData$X))
+```
+
+```{r}
+dates_filter <- as.data.frame(example_dates[Thursdays,])
+dates_filter
+```
+
+```{r}
+#Filter using tdr
+subset(x = example_dates, subset = Thursdays == T)
+```
+
+```{r}
+time.serie <- xts(dates_filter$VA, dates_filter$X) # Create a time serie
+head(time.serie)
+```
+
+```{r}
+plot(time.serie,main="Behavior on Thursdays")
+```
+
+
+## Sequences
+```{r}
+date1<-ymd("2020-01-01")
+date2<-Sys.Date()
+
+seq(date1,date2, length=10)
+
+```
+```{r}
+seq(date1,date2, by="week")
+```
+
+```{r}
+seq(date1,date2, by=15)
+```
+```{r}
+seq(date1,date2, by="month")
+```
+
+```{r}
+dt1 <- '2014-08-23 17:23:02'
+
+ymd_hms(dt1)
+hms("03:22:14")
+```
+### Update
+```{r}
+this_moment <- now()
+this_moment 
+
+update(this_moment, hours = 8, minutes = 34, seconds = 55)
+```
+### Modify year
+```{r}
+this_moment
+
+year(this_moment)<-2018
+this_moment
+
+days_in_month(this_moment)
+```
+
+
+### General things
+```{r}
+days_in_month(1:12)
+```
+
+```{r}
+leap_year(2008)
+```
+
+```{r}
+x <- ymd(c("2012-03-26", "2012-05-04", "2012-09-23", "2012-12-31"))
+quarter(x, with_year = TRUE)
+```
+
+```{r}
+quarter(x, with_year = TRUE, fiscal_start = 10) # Fiscal month
+```
+
+```{r}
+semester(x)
+semester(x,with_year = TRUE)
+```
+### parse_date_time
+```{r}
+x <- c("09-01-01", "09-01-02", "09-01-03")
+
+# distintas formas de indicar la misma instruccion.
+f01 <- parse_date_time(x, "ymd")
+f02 <- parse_date_time(x, "y m d")
+f03 <- parse_date_time(x, "%y%m%d")
+
+f01;f02;f03
+```
+
+```{r}
+x <- c("09-01-01", "090102", "09-01 03", "09-01-03 12:02")
+
+x1<-parse_date_time(x, c("ymd", "ymd HM"))
+x1
+```
+
+```{r}
+as.Date(x1)
+```
+
+```{r}
+parse_date_time(c("2016.2", "2016-04"), orders = "Yq")
+
+parse_date_time(c("2016", "2016-04"), orders = c("Y", "Ym"))
+```
+
+### Creating a manual period
+```{r}
+period (second = 90, minute = 5)
+period("2M 1sec")
+period("2hours 2minutes 1second")
+period("2d 2H 2M 2S")
+period("2days 2hours 2mins 2secs")
+```
+
+### Using rollback
+```{r}
+date <- ymd("2020-02-03")
+date
+
+rollback(date)
+```
+
+```{r}
+v_dates <- date + months(0:6)
+v_dates
+
+rollback(v_dates)
+```
+### Operators
+```{r}
+date5 <- as.Date("2017-01-10")
+date5 + 2
+
+date5 %m+% months(1:3)
+```
+
+```{r}
+int <- interval(ymd("2019-01-01"), ymd("2020-01-01"))
+int
+
+int2 <- interval(ymd("2019-06-01"), ymd("2020-01-01"))
+int2
+
+d1 <- ymd("2019-05-03") 
+d2 <- ymd("2018-01-01")
+
+d1
+d2
+```
+
+```{r}
+d1 %within% int
+```
+
+```{r}
+dates <- ymd(c("2014-12-20", "2014-12-30", "2015-01-01", "2015-01-03"))
+#Wrong because it is not using a list
+intervals<- c(interval(ymd("2014-12-30"), ymd("2014-12-31")),interval(ymd("2014-12-30"), ymd("2015-01-03")))
+
+intervals
+
+dates %within% intervals
+```
+
+```{r}
+
+dates <- ymd(c("2014-12-20", "2014-12-30", "2015-01-01", "2015-01-03"))
+
+#Good example because we are using a list to put all the intervals
+blackouts<- list(interval(ymd("2014-12-30"), ymd("2014-12-31")),
+interval(ymd("2014-12-30"), ymd("2015-01-03")))
+
+dates %within% blackouts
+```
+## Procesing dates
+```{r}
+dates <- read.csv("fechas.csv",header = T,sep = ";", dec= ",")
+head(dates,10)
+```
+
+```{r}
+dates01 <- dates %>% mutate(fecha_completa=make_datetime(Anio,Mes,Dia,Hora,Minuto,Segundo))
+head(dates01,10)
+
+str(dates01)
+
+
+dates02 <- dates %>% mutate(fecha=make_date(Anio,Mes,Dia))
+head(dates02,10)
+```
+
+```{r}
+#Last day
+dates04 <- dates02 %>% mutate(fecha_ult=make_date(year(fecha),month(fecha),1)+months(1)-1) #
+head(dates04,10)
+
+```
+
+```{r}
+x <- ymd("2012-03-26")
+x
+
+as.vector(wday(x, label = T, abbr=F))
+gsub(".\\.$", "",as.vector(wday(x, label = T, abbr=T)))
+
+floor_date(x, "week")#start week
+floor_date(x, "month")#start month
+floor_date(x, "year")#start year
+
+
+ceiling_date(x, "week")#Next start week
+ceiling_date(x, "month")#Next start month
+ceiling_date(x, "year")#Next start year
+```
+
+```{r}
+Days360 <- function (A,B){
+  
+  dia1 <- as.numeric(day(A))
+  mes1 <- as.numeric(month(A))
+  ans1 <- as.numeric(year(A))
+  
+  dia2 <- as.numeric(day(B))
+  mes2 <- as.numeric(month(B))
+  ans2 <- as.numeric(year(B))
+  
+  
+  dia1 <- ifelse(dia1==31 & dia2==31,31, # si los dos meses terminan en 31, dejelo.
+                 ifelse(dia1==31 & dia2<31,30,  # si el 1 es 31 y el dos es menor, ponga 30.     
+                        ifelse(dia1==30 & dia2==31,31, # si el 1 es 30 y el 2 es 31, ponga 31
+                               ifelse(dia1==28 & mes1 == 2 & dia2 == 31, 31, # si es febrero y dia 2 es 31, ponga 31       
+                                      ifelse(dia1==28 & mes1 == 2, 30,dia1)))))
+  
+  dif_ans <- ans2-ans1
+  dif_mes <- mes2-mes1
+  dif_dia <- ifelse(B-A==0,1,dia2-dia1)
+  
+  Total <- dif_ans*360+dif_mes*30+dif_dia
+  
+  return(Total)
+  
+}
+
+x <- ymd("2016-03-01")
+y <- ymd("2017-02-28")
+z <- ymd("2017-03-01")
+
+
+Days360(x,y)
+Days360(x,z)
+```
+
+```{r}
+month.abb
+
+my.month.n <- Vectorize(function(n) c(month.abb)[n])
+
+# examples
+my.month.n(1)
+my.month.n(1:3)
+```
+
+```{r}
+udm <- function(a){
+  
+  library(lubridate)
+  
+  fecha <- make_datetime(a,1,31)
+  
+  vector <- as.Date(fecha %m+% months(0:11))
+  
+  return(vector)
+}
+
+udm(2010)
+udm(2012)
+```
+

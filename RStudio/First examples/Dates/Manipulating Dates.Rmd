@@ -1,0 +1,159 @@
+---
+title: "Manipulating Dates"
+author: "Yordan García Corrales"
+date: "12/7/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+suppressWarnings(suppressMessages(library(lubridate)))
+
+```
+
+
+```{r}
+ej_fecha <- as.Date("2018-01-10") 
+ej_fecha
+```
+
+```{r}
+
+format(ej_fecha,"%a") #Day in word
+
+format(ej_fecha,"%d")#Day
+
+format(ej_fecha,"%w")#Day as First day Monday
+
+format(ej_fecha,"%u")#Day as First day Sunday
+
+format(ej_fecha,"%W")#Week of the month when start in Monday,  first Monday 2018-01-01
+
+format(ej_fecha,"%U")#Week of the month when start in Sunday, first Sunday 2018-01-07
+
+format(ej_fecha,"%C")
+
+format(ej_fecha,"%y")
+
+format(ej_fecha,"%Y")
+```
+# Words
+```{r}
+format(ej_fecha,"%a")
+
+format(ej_fecha,"%b")
+
+format(ej_fecha,"%A")
+
+format(ej_fecha,"%B")
+```
+
+```{r}
+Sys.getlocale("LC_TIME")
+```
+
+```{r}
+Today<-Sys.Date()
+Today
+```
+
+# Transform
+```{r}
+Date01<-as.Date("2017-01-20")
+Date01
+
+class(Date01)
+```
+# All times zones
+```{r}
+zones<-OlsonNames()
+zones[98]
+```
+
+```{r}
+nyc <- now("America/New_York")
+nyc
+
+crt <- now(zones[98])
+crt
+
+```
+
+# Presonal dates
+```{r}
+date02 <- as.Date("2018-12-25")
+date02
+
+as.character(date02, format="%d %b %Y")
+as.character(date02, format="%A, %d de %B de %Y")
+```
+
+```{r}
+date03=as.Date(c("1/10/2018","2/2/2018","3/4/2018","8/11/2018"))
+format(date03,"%B")
+```
+
+# POSIXct y POSIXlt
+
+## as.POSIXct
+```{r}
+dayCero <- as.POSIXct(as_date(0))
+dayCero
+
+now <- as.POSIXct(now())
+now
+```
+
+
+```{r}
+unclass(dayCero)
+unclass(now)
+```
+## as.POSIXlt
+```{r}
+dayCero2 <- as.POSIXlt(as_date(0))
+dayCero2
+
+now2 <- as.POSIXlt(now())
+now2
+```
+
+```{r}
+unclass(dayCero2)
+unclass(now2)
+```
+```{r}
+list2<-unclass(dayCero2)
+list3<-unclass(now2)
+list2$mday
+
+
+weekdays(now2) 
+months(now2)
+year(now2)
+```
+
+```{r}
+DateParts <- function(date){
+  dateProcess<-as.POSIXlt(date)
+  list<-unclass(dateProcess)
+  
+  name_day<-weekdays(dateProcess)
+  
+  num_day<-list$mday
+  
+  month<- months(dateProcess)
+  
+  year<- year(dateProcess)
+  
+  parts<- c(name_day,num_day,month,year)
+  
+  return(parts)
+}
+
+DateParts(now())
+```
+

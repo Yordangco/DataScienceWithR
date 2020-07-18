@@ -1,0 +1,155 @@
+---
+title: "DataBase 1"
+author: "Yordan García Corrales"
+date: "3/7/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+suppressWarnings(suppressMessages(library(dplyr)))
+suppressWarnings(suppressMessages(library(tidyr)))
+suppressWarnings(suppressMessages(library(lubridate)))
+suppressWarnings(suppressMessages(library(DT)))
+
+Sys.setlocale(locale="es_ES.UTF-8") # para uso de los nombres de días y meses en español
+```
+
+
+# DataBase 1
+## Creating a Database
+```{r}
+DB <- data.frame(read.csv2("BD1.csv"))
+datatable(head(DB))
+```
+## Types in database
+```{r}
+str(DB)
+```
+
+### Transform datas
+```{r}
+DB$Fecha <- dmy(DB$Fecha) #Now Fecha is Date
+datatable(head(DB))
+```
+
+```{r}
+str(DB)
+```
+
+## Add new datas
+```{r}
+# Add Selss
+DB1 <- DB %>% mutate(Sells=Cantidad*Precio.Unitario)
+
+# Add Minutes
+DB2 <- DB1 %>% mutate(Minutos=round(Horas_en_venta*60,0))
+
+# Add week's day
+DB3 <- DB2 %>% mutate(Dia=wday(Fecha,label = T,abbr = F))
+
+# Add group of week
+DB4 <- DB3 %>% mutate(Group_Days=ifelse(Dia=="sábado" | Dia=="domingo",
+                                      "weekend", "weekday"))
+datatable(head(DB4))
+```
+## Example 1
+#Know if the seller sells in a different place
+```{r}
+DB4<-DB4 %>% mutate(kindplace=ifelse(Residencia==Ruta,"Internal","External"))
+DB4
+```
+
+#If it is external you have to add the 0.5% of Sells to the seller
+```{r}
+DB5<- DB4 %>% mutate(AmountReco=round(ifelse(kindplace=="External",Sells*0.005,0)))
+DB5
+```
+## Example 2
+#Calculate the total to pay for each employee
+```{r}
+#Calcula the procentaje
+DB6<-DB5 %>% mutate(ProcenComision=as.double(ifelse(Group_Days=="weekend" & kindplace=="External",0.025,
+                                     ifelse(Group_Days=="weekday" & kindplace=="External",0.02,
+                                            ifelse(Group_Days=="weekday" & kindplace=="Interal",0.015,0.01)))))
+DB6
+```
+
+```{r}
+DB7 <- DB6 %>% mutate(AmountByComision=Sells*ProcenComision)
+DB8 <- DB7 %>% mutate(TotalPay=AmountByComision+AmountReco)
+DB8
+```
+#New columns
+```{r}
+DB9 <- DB8 %>% mutate(Rentab_min=round(Sells/Minutos,2)) 
+
+head(DB9)
+```
+
+```{r}
+DB10 <- DB9 %>% mutate(Part_PT=round(TotalPay/sum(TotalPay),4)*100) 
+
+head(DB10)
+```
+
+```{r}
+DB11 <- DB10 %>% mutate(Start_Selling=Edad-Años_Experiencia)
+
+head(DB11)
+
+#Experience
+range(DB11$Años_Experiencia)
+```
+
+```{r}
+DB12 <- DB11 %>% mutate(Rango_Exp=
+                ifelse(Años_Experiencia %in% 1:4,"less than 5",
+                ifelse(Años_Experiencia %in% 5:10,"between 5 and 10",
+                ifelse(Años_Experiencia %in% 11:20,"between 11 and 20",
+                ifelse(Años_Experiencia %in% 21:30,"between 21 and 30","more than 30 years")))))
+
+head(DB12)
+```
+
+#Range of sellings
+```{r}
+range(DB12$Sells)
+```
+#Categority by type of employee
+```{r}
+DB14 <- DB12 %>% mutate(Type_Seller=
+                ifelse(Sells %in% 1:1000,"New",
+                ifelse(Sells %in% 1001:300000,"Average",
+                ifelse(Sells %in% 300001:600000,"Good",
+                "Excelent"))))
+
+head(DB14)
+```
+
+#Sumarize
+```{r}
+R01 <- DB14 %>% group_by(Type_Seller) %>% count(Type_Seller)
+R01
+```
+
+#Sumarize by product
+```{r}
+R02 <- DB14 %>% group_by(Producto) %>% summarise(prom=round(mean(Sells),2))
+R02
+```
+#Datas from begining database
+```{r}
+v01<-names(DB)
+
+v01
+```
+#Datas from last database
+```{r}
+v02<-names(DB14)
+v02
+```
+
