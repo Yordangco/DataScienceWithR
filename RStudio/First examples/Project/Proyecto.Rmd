@@ -2,7 +2,13 @@
 title: "Proyecto"
 author: "Yordan García Corrales"
 date: "20/6/2020"
-output: html_document
+output: 
+  html_document:
+     toc: true
+     toc_depth: 6
+     number_section: true
+     toc_float: true
+     theme: readable
 ---
 
 ```{r setup, include=FALSE}
@@ -12,6 +18,8 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{r}
 library(httr)
+library(readxl)
+library(lubridate)
 urlTipoCambio<-"https://tipodecambio.paginasweb.cr/api/"
 urlCasosCovid<-"https://api.covid19api.com/country/costa-rica?from="
 ```
@@ -19,51 +27,151 @@ urlCasosCovid<-"https://api.covid19api.com/country/costa-rica?from="
 ```{r}
 BaseDatos<-data.frame()
 
-extaerCasos<-function(datos){
-  aux<-NULL
-  if(!is.null(datos)){
-    for(a in contenidoCasosCovid){
-      aux<-c(aux,a$Confirmed)
-    }
-  }
-  return (aux)
-}
-
-extaerfechas<-function(datos){
-  aux<-NULL
-  if(!is.null(datos)){
-    for(a in contenidoCasosCovid){
-      aux<-c(aux,a$Date)
-    }
-  }
-  return (aux)
-}
-
-cargaDatos<-function(){
-  hoy<-today()
-  haceTresMeses<-seq(hoy, length = 2, by = "-3 months")[2]
-  tipoCambio <- GET(url =urlTipoCambio)
-  casosCovid<-GET(url=paste0(urlCasosCovid,hoy,"&to=",haceTresMeses))
-  BaseDatos<-data.frame(
-    Fecha=extaerfechas(casosCovid),
-    CantidadCovid=extaerCasos(casosCovid))
-  return(BaseDatos)
-}
-
 casosCovid <- GET(url = "https://api.covid19api.com/country/costa-rica?from=2020-03-19T00:00:00Z&to=2020-06-20T00:00:00Z")
 
 #status_code(result)
 #headers(result)
 #str(content(result)) #Muestra todo el contenido como texto.
-contenidoTipoCambio<-content(tipoCambio) #Devuelve el contenido el formato list
-contenidoTipoCambio
+#<-content(tipoCambio) #Devuelve el contenido el formato list
+#contenidoTipoCambio
 
-contenidoCasosCovid<-content(casosCovid) #Devuelve el contenido el formato list
-length(contenidoCasosCovid)
+#contenidoCasosCovid<-content(casosCovid) #Devuelve el contenido el formato list
+#length(contenidoCasosCovid)
 
 ```
+## Metodos
+
+### Metodos extractores de datos necesarios de los API
+```{r}
+extaerCasos<-function(datos){ #Extrae la cantidad de positivos en un vector
+  aux<-NULL
+  if(!is.null(datos)){
+    datos<-content(datos)
+    for(datos in datos){
+      aux<-c(aux,datos$Confirmed)
+    }
+  }
+  return (aux)
+}
+
+extaerfechas<-function(datos){#Extrae las fechas de positivos en un vector
+  aux<-NULL
+  if(!is.null(datos)){
+    datos<-content(datos)
+    for(contenido in datos){
+      aux<-c(aux,contenido$Date)
+    }
+  }
+  return (aux)
+}
+```
+
+### Carga datos 
+#### Carga los tipos de cambio con respecto a la compra del dolar
+```{r}
+cargaTipoCambio<-function(fechas){
+  vectorTipoCambioCompra<-NULL
+  vectorTipoCambioVenta<-NULL
+  for(fecha in fechas){
+    tipoCambio <- GET(url =paste0(urlTipoCambio,fecha))#Respuesta del request
+
+    if(!is.null(tipoCambio)){
+      tipoCambio<-content(tipoCambio)#Se obtiene el contenido de la respuesta
+      vectorTipoCambioCompra<-c(vectorTipoCambioCompra,tipoCambio$compra)
+      vectorTipoCambioVenta<-c(vectorTipoCambioVenta,tipoCambio$venta)
+    }
+  }
+    BaseDatosTipoCambio<-data.frame(
+    CompraUSD=vectorTipoCambioCompra,
+    VentaUSD=vectorTipoCambioVenta)
+    return(BaseDatosTipoCambio)
+}
+```
+
+#### CargaDatos de los API de casos covid-19 y guarda en xlsx
+```{r}
+cargaDatos<-function(){
+  library(httr)
+  library(xlsx)
+  library(lubridate)
+  
+  suppressMessages(baseDatosOriginal<-readBD())#Leer un archivo xml
+  baseDatosOriginal$...1<-NULL
+  if(!is.null(baseDatosOriginal)){ # Si la base de datos tiene algo carga desde la fecha mayor a hoy
+    hoy<-Sys.Date()
+    fechaMayor<-ymd(max(baseDatosOriginal$Fecha))
+    if(fechaMayor!=hoy & fechaMayor!= (hoy %m+% days(-1))){
+    print("Entro al if")
+    casosCovid<-GET(url=paste0(urlCasosCovid,fechaMayor,"&to=",hoy))#Consume API
+    Fecha<-extaerfechas(casosCovid)#Extraen todas las fechas
+    Fecha<-as.Date(Fecha)
+    Fecha<-format(as.Date(Fecha, format="%d/%m/%Y"),"%Y/%m/%d")
+    TipoCambio<-cargaTipoCambio(Fecha)#Carga el vector de tipo de cambio
+    
+    BaseDatos<-data.frame(
+    Fecha,
+    CantidadCovid=extaerCasos(casosCovid),TipoCambio)
+    BaseDatos<- rbind(baseDatosOriginal,BaseDatos)
+    BaseDatos
+    write.xlsx(x=BaseDatos,file = "BaseDatosCovid.xlsx",sheetName = "Datos")
+    }else{
+      BaseDatos<-baseDatosOriginal
+    }
+  }else if(is.null(baseDatosOriginal)){
+    hoy<-Sys.Date() %m+% days(-1)
+    
+    haceTresMeses<-seq(hoy, length = 2, by = "-3 months")[2]
+    casosCovid<-GET(url=paste0(urlCasosCovid,haceTresMeses,"&to=",hoy))#Consume API
+    Fechas<-extaerfechas(casosCovid)#Extraen todas las fechas
+    Fechas<-as.Date(Fechas)
+    Fechas<-format(as.Date(Fechas, format="%d/%m/%Y"),"%Y/%m/%d")
+    TipoCambio<-cargaTipoCambio(Fechas)#Carga el vector de tipo de cambio
+    
+    BaseDatos<-data.frame(
+    Fecha=Fechas,
+    CantidadCovid=extaerCasos(casosCovid),TipoCambio)
+    
+     write.xlsx(x=BaseDatos,file = "BaseDatosCovid.xlsx",sheetName = "Datos")
+  }
+  
+  return(BaseDatos)
+}
+
+```
+
+### Metodo que lee de la Base de datos xlsx
+```{r}
+readBD<-function(){
+  library(readxl)
+  
+  baseDatos<-NULL
+  if(file.exists(paths = "BaseDatosCovid.xlsx")){
+    baseDatos<-read_xlsx(path = "BaseDatosCovid.xlsx",sheet = "Datos")
+  }
+  
+  return(baseDatos)
+}
+
+```
+
+### Metodo que manipula los datos base
+```{r}
+addColumns<-function(baseDatos){
+  
+}
+```
+
+
 ## Carga de datos
 ```{r}
-cargaDatos()
+library(dplyr)
+BD<-cargaDatos()
+BD
+```
+
+
+## Gráficos
+```{r}
+show_plot(inspect_imb(BD))
 ```
 
