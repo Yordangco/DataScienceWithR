@@ -1,0 +1,287 @@
+---
+title: "Data Visualization II"
+author: "Yordan García Corrales"
+date: "24/7/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+suppressWarnings(suppressMessages(library(highcharter)))
+suppressWarnings(suppressMessages(library(ggplot2)))
+suppressWarnings(suppressMessages(library(dplyr)))
+suppressWarnings(suppressMessages(library(quantmod)))
+suppressWarnings(suppressMessages(library(plotly)))
+```
+
+```{r}
+apropos("hc_")
+```
+# Ordered pairs Graphic
+```{r}
+Datas <- mpg
+head(Datas)
+```
+
+```{r}
+suppressWarnings(suppressMessages(hchart(Datas, "scatter", hcaes(x = displ, y = hwy, group = class)) %>% hc_title(text = "Dispersión diamonds") %>%
+  hc_add_theme(hc_theme_economist())))
+```
+
+## Columns by Graphic
+```{r}
+Datas02 <- Datas %>%
+  count(class, year) %>%
+  glimpse()
+```
+
+```{r}
+hchart(Datas02, "column", hcaes(x = class, y = n, group = year)) %>% hc_add_theme(hc_theme_gridlight())
+```
+
+```{r}
+hchart(Datas02, "bar", hcaes(x = class, y = n, group = year))  %>% hc_add_theme(hc_theme_google())
+```
+
+## Dashboard Graphic
+```{r}
+Datas03 <- Datas %>% 
+  group_by(class) %>% # manufacturer 
+  summarise(n = n(), unique = length(unique(model))) %>% 
+  arrange(-n, -unique) %>% 
+  glimpse()
+```
+
+```{r}
+hchart(Datas03, "treemap", hcaes(x = class, value = n, color = unique))
+```
+
+## Serie Graphics
+```{r}
+Datas04 <- economics_long
+
+Datas04 %>% filter(variable %in% c("pop", "uempmed", "unemploy"))
+```
+
+```{r}
+unique(Datas04$variable)
+
+hchart(Datas04, "line", hcaes(x = date, y = value01, group = variable)) %>% hc_add_theme(hc_theme_538())
+```
+
+```{r}
+Datas05 <- diamonds
+head(Datas05)
+```
+
+```{r}
+hchart(Datas05$price) %>% hc_add_theme(hc_theme_gridlight())
+```
+
+## Pie graphics
+```{r}
+hchart(Datas02 %>% filter(year==2008) , "pie", hcaes(x = class, y = n)) %>% hc_add_theme(hc_theme_538())
+
+```
+
+### Density graphic
+```{r}
+hchart(density(Datas05$price), type = "area", color = "green", name = "Precio") %>% 
+  hc_add_theme(hc_theme_chalk())
+```
+### Different variables
+```{r}
+data(citytemp)
+
+hc <- highchart() %>% 
+  hc_xAxis(categories = citytemp$month) %>% 
+  hc_add_series(name = "Tokyo", data = citytemp$tokyo) %>% 
+  hc_add_series(name = "London", data = citytemp$london) %>% 
+  hc_add_series(name = "Other city",
+                data = (citytemp$tokyo + citytemp$london)/2)
+
+hc
+```
+
+```{r}
+hc <- hc %>% 
+  hc_chart(type = "column",
+           options3d = list(enabled = TRUE, beta = 15, alpha = 15))
+
+hc
+```
+
+## Quantmod
+## Time serie
+```{r}
+x <- getSymbols("USD/JPY", src = "oanda", auto.assign = FALSE)
+head(x)
+```
+```{r}
+hchart(x)
+```
+
+## forecast
+```{r}
+library("forecast")
+```
+
+```{r}
+Datos06 <- AirPassengers
+head(Datos06)
+```
+
+```{r}
+airforecast <- forecast(auto.arima(Datos06), level = 95)
+hchart(airforecast) %>% hc_add_theme(hc_theme_sandsignika())
+```
+
+## Boxplot
+```{r}
+head(Datas05)
+```
+
+```{r}
+hcboxplot(x = Datas05$x, var = Datas05$color,
+          name = "Length", color = "red") %>%
+  hc_add_theme(hc_theme_darkunica())
+```
+
+## Double Graphics
+```{r}
+data("favorite_bars")
+data("favorite_pies")
+
+highchart() %>%
+  # Data
+  hc_add_series(favorite_pies, "column", hcaes(x = pie, y = percent), name = "Bars") %>%
+  hc_add_series(favorite_bars, "pie", hcaes(name = bar, y = percent), name = "Pie") %>% 
+        hc_add_theme(hc_theme_ffx()) %>%
+  
+  # Optiosn for each type of series
+  hc_plotOptions(
+    series = list(
+      showInLegend = FALSE,
+      pointFormat = "{point.y}%"
+    ),
+    column = list(
+      colorByPoint = TRUE
+    ),
+    pie = list(
+      colorByPoint = TRUE, center = c('30%', '10%'),
+      size = 120, dataLabels = list(enabled = FALSE)
+    )) %>%
+  # Axis
+  hc_yAxis(
+    title = list(text = "Description"),
+    labels = list(format = "{value}%"), max = 100
+  ) %>%
+  hc_xAxis(categories = favorite_pies$pie) %>%
+  # Titles and credits
+  hc_title(
+    text = "This is a bar graph describing my favorite pies
+    including a pie chart describing my favorite bars"
+  ) %>%
+  hc_subtitle(text = "In percentage of tastiness and awesomeness") %>%
+  hc_credits(
+    enabled = TRUE, text = "Data Science with R",
+    style = list(fontSize = "12px")
+  )
+```
+
+## Package Plotly
+```{r}
+USPersonalExpenditure <- data.frame("Categorie"=rownames(USPersonalExpenditure), USPersonalExpenditure)
+data <- USPersonalExpenditure[,c('Categorie', 'X1960')]
+
+p <- plot_ly(data, labels = ~Categorie, values = ~X1960, type = 'pie') %>%
+  layout(title = 'United States Personal Expenditures by Categories in 1960',
+         xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
+         yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE))
+
+p
+```
+
+```{r}
+USPersonalExpenditure <- data.frame("Categorie" = rownames(USPersonalExpenditure), USPersonalExpenditure)
+data <- USPersonalExpenditure[, c('Categorie', 'X1960')]
+
+colors <- c('rgb(211,94,96)', 'rgb(128,133,133)', 'rgb(144,103,167)', 'rgb(171,104,87)', 'rgb(114,147,203)')
+
+p <- plot_ly(data, labels = ~Categorie, values = ~X1960, type = 'pie',
+        textposition = 'inside',
+        textinfo = 'label+percent',
+        insidetextfont = list(color = '#FFFFFF'),
+        hoverinfo = 'text',
+        text = ~paste('$', X1960, ' billions'),
+        marker = list(colors = colors,
+                      line = list(color = '#FFFFFF', width = 1)),
+                      #The 'pull' attribute can also be used to create space between the sectors
+        showlegend = FALSE) %>%
+  layout(title = 'United States Personal Expenditures by Categories in 1960',
+         xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
+         yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE))
+
+p
+```
+
+```{r}
+p <- plot_ly() %>%
+  add_pie(data = count(diamonds, cut), labels = ~cut, values = ~n,
+          name = "Cut", domain = list(x = c(0, 0.4), y = c(0.4, 1))) %>%
+  add_pie(data = count(diamonds, color), labels = ~color, values = ~n,
+          name = "Color", domain = list(x = c(0.6, 1), y = c(0.4, 1))) %>%
+  add_pie(data = count(diamonds, clarity), labels = ~clarity, values = ~n,
+          name = "Clarity", domain = list(x = c(0.25, 0.75), y = c(0, 0.6))) %>%
+  layout(title = "Pie Charts with Subplots", showlegend = F,
+         xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
+         yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE))
+
+p
+```
+## Category Graphics
+```{r}
+p <- plot_ly(
+  labels = c("Eve", "Cain", "Seth", "Enos", "Noam", "Abel", "Awan", "Enoch", "Azura"),
+  parents = c("", "Eve", "Eve", "Seth", "Seth", "Eve", "Eve", "Awan", "Eve"),
+  values = c(10, 14, 12, 10, 2, 6, 6, 4, 4),
+  type = 'sunburst')
+
+p
+```
+
+```{r}
+d <- data.frame(
+    ids = c(
+    "North America", "Europe", "Australia", "North America - Football", "Soccer",
+    "North America - Rugby", "Europe - Football", "Rugby",
+    "Europe - American Football","Australia - Football", "Association",
+    "Australian Rules", "Autstralia - American Football", "Australia - Rugby",
+    "Rugby League", "Rugby Union"
+  ),
+  labels = c(
+    "North<br>America", "Europe", "Australia", "Football", "Soccer", "Rugby",
+    "Football", "Rugby", "American<br>Football", "Football", "Association",
+    "Australian<br>Rules", "American<br>Football", "Rugby", "Rugby<br>League",
+    "Rugby<br>Union"
+  ),
+  parents = c(
+    "", "", "", "North America", "North America", "North America", "Europe",
+    "Europe", "Europe","Australia", "Australia - Football", "Australia - Football",
+    "Australia - Football", "Australia - Football", "Australia - Rugby",
+    "Australia - Rugby"
+  ),
+  stringsAsFactors = FALSE
+)
+
+d
+```
+```{r}
+p <- plot_ly(d, ids = ~ids, labels = ~labels, parents = ~parents, type = 'sunburst')
+
+p
+```
+

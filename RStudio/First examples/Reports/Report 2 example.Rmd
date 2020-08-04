@@ -1,0 +1,62 @@
+---
+title: "Nivel 4 Tema 4: Informe ejecutivo: 1- Tipo desglose"
+author: "Yordan García Corrales"
+
+output: 
+  html_document:
+    toc: true 
+    toc_float: true 
+    #theme: readable
+    toc_depth: 5 # Cantidad de desagregaciones automaticas (signos #)
+    number_sections: true # Habilita enumeracion automática
+    code_folding: show
+    
+---
+
+```{r setup, include=FALSE}
+ knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Titulo principal
+
+```{r}
+Datos <- 1:10
+Datos
+```
+
+## Titulo secundo 1
+
+```{r}
+plot(Datos)
+```
+
+### Titulo tercero 1
+
+```{r}
+plot(Datos)
+```
+
+#### Titulo cuarto 1
+
+```{r}
+plot(Datos)
+```
+
+
+## Titulo secundo 2
+
+```{r}
+plot(Datos)
+```
+
+### Titulo tercero 2
+
+```{r}
+plot(Datos)
+```
+
+#### Titulo cuarto 2
+
+```{r}
+plot(Datos)
+```

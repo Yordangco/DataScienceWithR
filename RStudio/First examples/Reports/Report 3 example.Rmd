@@ -1,0 +1,51 @@
+---
+title: "Nivel 4 Tema 4: Informe ejecutivo: 2- Tipo páginas sobrepuestas"
+author: "Yordan Garcia Corrales"
+
+output: 
+  html_document:
+    toc: true 
+    toc_float: true 
+    #theme: readable
+    toc_depth: 5 # Cantidad de desagregaciones automaticas (signos #)
+    number_sections: true # Habilita enumeracion automática
+    code_folding: show
+    
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Parte01. {.tabset .tabset-fade .tabset-pills} 
+
+```{r}
+Datos <- 1:10
+Datos
+```
+
+## Cuadro 1
+```{r}
+plot(Datos)
+```
+
+## Cuadro 2
+```{r}
+Datos
+```
+
+## Cuadro 3 {.tabset .tabset-fade .tabset-pills} 
+```{r}
+plot(Datos)
+```
+
+### Cuadro 3.1
+```{r}
+plot(Datos)
+```
+
+### Cuadro 3.2
+```{r}
+Datos02 <- 1:15
+plot(Datos02)
+```

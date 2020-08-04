@@ -16,3 +16,166 @@ suppressWarnings(suppressMessages(library(RColorBrewer)))
 suppressWarnings(suppressMessages(library(readtext)))
 ```
 
+#Using text
+
+## Manipulation text
+```{r}
+CDD <- "El Cientifico de datos es el profesional capaz de crear, analizar y procesar cualquier tipo de informacion para generar con ella indicadores relevantes para la toma de decisiones de la  empresa o institucion. Para este fin utiliza herramientas informaticas para ayudar a automatizar los procesos que hoy realiza manualmente."
+
+# Convertirlo en data frame
+text <- data.frame(doc_id="Data_Science",
+                    text=CDD)
+text
+```
+
+```{r}
+doc01 <- DataframeSource(text)
+doc01
+```
+
+```{r}
+body <- Corpus(doc01)
+body
+```
+
+```{r}
+# Delete punctuation
+body <- tm_map(body,removePunctuation)
+
+# Lower case text
+body <- tm_map(body,content_transformer(tolower))
+
+# Delete numbers
+body <- tm_map(body,removeNumbers)
+
+# Delete empty spanish words
+body <- tm_map(body, removeWords, stopwords("spanish"))
+
+# Delete empty spaces do not used
+body <- tm_map(body, stripWhitespace)
+
+# Transform text to plain text
+body <- tm_map(body, PlainTextDocument)
+
+body
+```
+
+```{r}
+doc_matrix <- TermDocumentMatrix(body)
+doc_matrix <- as.matrix(doc_matrix)
+
+CDD
+
+doc_matrix
+```
+```{r}
+text_array <- sort(rowSums(doc_matrix),decreasing=TRUE)
+text_array
+```
+
+```{r}
+text_df <- data.frame(word = names(text_array), freq=text_array)
+text_df
+```
+
+```{r}
+suppressWarnings(wordcloud(text_df$word, text_df$freq,
+          scale = c(5,.2), min.freq = 1, max.words = Inf, random.order = FALSE,
+          rot.per = 0.5, colors = "red"))
+```
+
+## Analize pdf
+```{r}
+Sys.setlocale(category="LC_ALL", locale = "Spanish_Spain.UTF-8")
+```
+
+```{r}
+#Load text
+Discurso_CA <- readtext("Discurso_CA.pdf", encoding="UTF-8")
+
+text <- data.frame(doc_id = Discurso_CA$doc_id,
+                   text = Discurso_CA$text)
+```
+
+```{r}
+doc01 <- DataframeSource(text)
+
+```
+
+```{r}
+body <- Corpus(doc01)
+
+body <- tm_map(body,removePunctuation)
+
+body <- tm_map(body,content_transformer(tolower))
+
+body <- tm_map(body,removeNumbers)
+
+body <- tm_map(body, removeWords, stopwords("spanish"))
+
+body <- tm_map(body, stripWhitespace)
+
+body <- tm_map(body, PlainTextDocument)
+```
+```{r}
+doc_matrix <- TermDocumentMatrix(body)
+doc_matrix <- as.matrix(doc_matrix)
+```
+
+```{r}
+text_vector <- sort(rowSums(doc_matrix),decreasing=TRUE)
+```
+
+```{r}
+text_df <- data.frame(word = names(text_vector), freq=text_vector)
+```
+
+```{r}
+suppressWarnings(wordcloud(text_df$word, text_df$freq,
+          scale = c(5,.2), min.freq = 1, max.words = Inf, random.order = FALSE,
+          rot.per = 0.35, colors = "green"))
+```
+
+```{r}
+suppressWarnings(wordcloud(text_df$word, text_df$freq,
+          scale = c(5,.2), min.freq = 5, max.words = Inf, random.order = FALSE,
+          rot.per = 0.35, colors = "red"))
+```
+
+## Example text mining 2
+```{r}
+doc02 <- DataframeSource(text)
+
+body02 <- Corpus(doc02)
+
+body02 <- tm_map(body02,removePunctuation)
+
+body02 <- tm_map(body02,content_transformer(tolower))
+
+body02 <- tm_map(body02,removeNumbers)
+
+body02 <- tm_map(body02, removeWords, stopwords("spanish"))
+
+body02 <- tm_map(body02, stripWhitespace)
+
+body02 <- tm_map(body02, PlainTextDocument)
+
+doc_matrix02 <- TermDocumentMatrix(body)
+doc_matrix02 <- as.matrix(doc_matrix)
+
+text_vector02 <- sort(rowSums(doc_matrix02),decreasing=TRUE)
+
+text_df02 <- data.frame(word = names(text_vector02), freq=text_vector)
+```
+```{r}
+suppressWarnings(wordcloud(text_df02$word, text_df02$freq,
+          scale = c(5,.2), min.freq = 1, max.words = Inf, random.order = FALSE,
+          rot.per = 0.35, colors = "red"))
+```
+#More than 5 words
+```{r}
+suppressWarnings(wordcloud(text_df02$word, text_df02$freq,
+          scale = c(5,.2), min.freq = 5, max.words = Inf, random.order = FALSE,
+          rot.per = 0.35, colors = "red"))
+```
+

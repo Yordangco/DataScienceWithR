@@ -1,0 +1,179 @@
+---
+title: "Interactive Graphic I"
+author: "Yordan García Corrales"
+date: "20/7/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+suppressWarnings(suppressMessages(library(rAmCharts)))
+suppressWarnings(suppressMessages(library(pipeR)))
+```
+
+## Ring Graphic
+```{r}
+amSolidGauge(x = 90)
+```
+
+```{r}
+amSolidGauge(x = 60, min = 0, max = 90)
+```
+
+```{r}
+amSolidGauge(x = 60, min = 0, max = 90, type = "semi")
+```
+
+```{r}
+amSolidGauge(x = 60, # valor
+             min = 0, 
+             max = 90, 
+             type = "semi", # kind
+             width=50) # bar with
+```
+
+```{r}
+amSolidGauge(x = 60, min = 0, max = 90, type = "semi", text="min")
+```
+
+```{r}
+amSolidGauge(x = 60, min = 0, max = 90, type = "semi", text="min", textSize = 40)
+```
+
+### Allow to export
+```{r}
+amSolidGauge(x = 60, min = 0, max = 90, export = TRUE)
+```
+
+```{r}
+#Just allow jpa
+amSolidGauge(x = 65, min = 0, max = 90) %>>% amOptions(export = TRUE)
+```
+
+```{r}
+#Just allow jpa
+amSolidGauge(x = 65) %>>% 
+amOptions(export = TRUE, exportFormat = "JPG")
+```
+
+## General functions
+```{r}
+amSolidGauge(x = 60, min = 0, max = 90,color="green",
+             main = "Ring Graphic",
+             mainColor = "green", 
+             mainSize = 25, 
+             creditsPosition = "bottom-right")
+```
+
+## Angular Graphics
+```{r}
+amAngularGauge(x = 40)
+```
+
+```{r}
+Datas = data.frame(start = c(0, 45, 75), end = c(45, 75, 100), 
+                   color = c("green", "blue", "red"),
+                   stringsAsFactors = FALSE)
+
+
+amAngularGauge(x = 40, bands = Datas,text = "km/h")
+```
+
+```{r}
+amAngularGauge(x = 40, theme = "patterns")
+```
+
+## Multivariables
+```{r}
+data_stock_3
+```
+
+```{r}
+names(data_stock_3) <- c("Datas_01","Datas_02","Datas_03","Datas_04")
+```
+
+```{r}
+amStockMultiSet(data = data_stock_3)
+```
+
+```{r}
+ZoomButton <- data.frame(Unit = c('DD', 'DD', 'MAX'), multiple = c(10, 15 ,1),
+                          label = c('10 días','15 días', 'Total'))
+
+ZoomButton
+```
+
+```{r}
+amStockMultiSet(data = data_stock_3, panelColumn = c(1,2,1,1), percentHeightPanel = c(3,1),
+                  ZoomButtonPosition = 'left', ZoomButton = ZoomButton, export = TRUE, precision = 0)
+```
+## Column Graphics
+```{r}
+data_bar
+```
+
+```{r}
+data_gbar
+```
+
+```{r}
+amBarplot(x = "country", y = "visits", data = data_bar)
+```
+
+```{r}
+amBarplot(x = "country", y = "visits", data = data_bar,horiz = T)
+```
+## Example 2 variables
+
+```{r}
+data_gbar
+```
+
+```{r}
+amBarplot(x = "year", y = c("income", "expenses"), data = data_gbar)
+```
+
+```{r}
+pipeR::pipeline(
+  amBarplot(x = "month", y = c("income", "expenses"), data = data_gbar,
+            dataDateFormat = "MM/YYYY", minPeriod = "MM"),
+  setChartCursor()
+)
+```
+```{r}
+amBarplot(x = "year", y = c("income", "expenses"), data = data_gbar, stack_type = "regular")
+```
+
+```{r}
+amBarplot(x = "year", y = c("income", "expenses"), data = data_gbar, stack_type = "100")
+```
+
+```{r}
+amBarplot(x = "year", y = c("income", "expenses"), data = data_gbar, layered = TRUE)
+```
+
+```{r}
+Datas <- data.frame(get(x = "USArrests", pos = "package:datasets"))
+Datas
+```
+
+```{r}
+amBarplot(y = c("Murder", "Assault", "UrbanPop", "Rape"), data = Datas, stack_type = "regular",labelRotation=90)
+```
+```{r}
+amBarplot(x = "year", y = c("income", "expenses"), data = data_gbar, legend = TRUE)
+```
+
+```{r}
+amBarplot(x = "year", y = c("income", "expenses"), data = data_gbar, legend = TRUE, legendPosition = "left")
+```
+
+### Titles
+```{r}
+amBarplot(x = "country", y = "visits", data = data_bar, labelRotation = -45, main = "My Barchart",
+        mainColor = "blue", mainSize = 53, creditsPosition = "top-right")
+```
+

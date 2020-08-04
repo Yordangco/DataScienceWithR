@@ -1,0 +1,245 @@
+---
+title: "Nivel 4 Tema 4: Informe ejecutivo: 4- Tipo Dashboard"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: columns
+    # social: menu # compartir contenido
+    # source_code: embed # Ver el codigo interno
+    vertical_layout: fill
+---
+
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+suppressWarnings(suppressMessages(library(flexdashboard)))
+suppressWarnings(suppressMessages(library(dplyr)))
+suppressWarnings(suppressMessages(library(tidyr)))
+suppressWarnings(suppressMessages(library(lubridate)))
+suppressWarnings(suppressMessages(library(xts)))
+suppressWarnings(suppressMessages(library(dygraphs)))
+
+# https://rmarkdown.rstudio.com/flexdashboard/index.html
+
+```
+![](logoR.png){width=50%}
+
+## Hechos Relevantes.
+
+Variación interanual de TC
+
+## Mercado Cambiario {.tabset}
+ 
+### Información actualizada
+
+# Intro {.sidebar}
+
+**Régimen cambiario de flotación administrada:**
+
+*Seguimiento mercado*
+
+* MONEX
+
+*Variables de interés*
+
+* Tipo de cambio
+
+
+
+**NUESTRA EMPRESA**
+Cispro S.A. ofrece servicios de consultoría en en análisis y procesamiento de datos por medio de R y Microsoft Excel. Puede visitar nuestras paginas www.cisprocr.com y www.excel-laboral.com para más detalle.
+
+**Aclaración:** Todo el material suministrado es creación propia de Cispro S.A. En los casos de no serlo, se indicará la respectiva referencia biblioagrafia o link de las páginas web consultadas.
+
+
+```{r message=FALSE, warning=FALSE, include=FALSE}
+
+library(flexdashboard)
+
+
+Datos <- data.frame(read.csv2("Monex.csv",header = T,sep = ";", dec= "," ))
+#head(Datos)
+
+# Cantidad de columnas
+n <- dim(Datos)[2]
+
+Datos02 <- gather(data = Datos, key = "Fecha_text", value = "Valor", 3:n)
+#head(Datos02,n=15)
+
+
+# Limpiar los datos
+Datos02$Fecha_text <- gsub("X","",Datos02$Fecha_text)
+#head(Datos02,n=15)
+
+# Separar la fecha
+Datos02 <- separate(data=Datos02, col=Fecha_text, into= c("Dia","Mes","Year"))
+#head(Datos02,n=15)
+
+# Agregar Fecha usando punto para el mes, de lo contrario da error
+Datos03 <- Datos02 %>%  mutate(Fecha01 = paste(Dia,Mes,".",Year,sep=""))
+#head(Datos03,n=15)
+
+#Crear Fecha Final
+Datos04 <- Datos03 %>%  mutate(Fecha = dmy(Fecha01))
+#head(Datos04,n=15)
+
+# Eliminar columna no requerida
+Datos05 <- Datos04[,-c(4,7)]
+#head(Datos05)
+
+# Crear el mes numerico
+Datos06 <- Datos05 %>%  mutate(Mes = month(Fecha))
+#head(Datos06)
+
+# Eliminar los valores de cero.
+Datos07 <- Datos06 %>% filter(Valor!=0)
+#head(Datos07)
+
+# Crear llave unica
+Datos08 <- Datos07 %>%  mutate(Llave = paste(Rubro,Variable,sep="-"))
+
+# Reordenar los datos
+Datos09 <- Datos08[,c(1:2,8,6,3,7,4,5)]
+#head(Datos09)
+
+####################
+# Obtener los ultimos 30 datos.
+
+calces <- Datos09 %>% filter(Llave=="Calces-Total")
+head(calces)
+
+n1 <- dim(calces)[1]
+
+ult30 <- n1-29
+ult30
+
+calces01 <- calces[c(ult30:n1),c(4,8)]
+head(calces01)
+
+n2 <- dim(calces01)[1] 
+n2
+
+calces02 <- xts(calces01$Valor,order.by=calces01$Fecha)
+
+g01 <-  dygraph(calces02, main = "Cantidad de Negociaciones Diarias") %>% 
+        dyLegend(labelsSeparateLines = t, width = 100,show = "always", hideOnMouseOut = F) %>%
+        dySeries(label = "Cantidad", axis = 'y',color = "blue") %>% 
+        dyRangeSelector() 
+
+ult_Fecha <- date(max(calces01$Fecha))
+ult_Fecha
+
+Ult_Calce <- calces01$Valor[n2]
+Ult_Calce
+
+
+####################
+# Obtener Datos del ultimo día
+Dat_ult_dia <- Datos09 %>% filter(Fecha==ult_Fecha)
+head(Dat_ult_dia,15)
+
+# Obtener los datos para los indicadores
+# se usa max para traer el datos (los demás son cero)
+
+TC_pri <- max(ifelse(Dat_ult_dia$Llave=="Tipo de Cambio-Primero",Dat_ult_dia$Valor,0))
+TC_pri
+
+TC_ult <- max(ifelse(Dat_ult_dia$Llave=="Tipo de Cambio-Último",Dat_ult_dia$Valor,0))
+TC_ult
+
+TC_min <- max(ifelse(Dat_ult_dia$Llave=="Tipo de Cambio-Mínimo",Dat_ult_dia$Valor,0))
+TC_min
+
+TC_max <- max(ifelse(Dat_ult_dia$Llave=="Tipo de Cambio-Máximo",Dat_ult_dia$Valor,0))
+TC_max
+
+```
+
+
+# Indicadores al `r ult_Fecha`
+
+## My first column
+
+### Date
+```{r, echo=F}
+valueBox(ult_Fecha, icon = "fa-pencil", color="red")
+
+```
+
+### Calces
+```{r, echo=F}
+valueBox(Ult_Calce, icon="fa-comments", caption = "Cantidad de operaciones", color="blue")
+```
+
+### TC Primero
+```{r, echo=F}
+valueBox(TC_pri, icon = "fa-pencil", caption = "Primer tipo de cambio", color="red")
+```
+
+### TC Ultimo
+```{r, echo=F}
+valueBox(TC_ult, icon = "fa-comments", caption = "ültimo tipo de cambio", color="blue")
+```
+
+Column {data-width=650}  {.tabset}
+-----------------------------------------------------------------------
+
+### Cantidad Operaciones
+
+```{r, echo=F}
+g01
+```
+
+### TC Maximo
+```{r, echo=F}
+valueBox(TC_max, icon = "fa-comments", caption = "Tipo de cambio máximo", color="red")
+```
+
+### TC Minimo
+```{r, echo=F}
+valueBox(TC_min, icon = "fa-tag", caption = "Tipo de cambio mínimo", color="blue")
+```
+
+
+# Graficos
+
+
+Column {data-width=500}  {.tabset}
+-----------------------------------------------------------------------
+### Ejemplo 1
+
+```{r, echo=F}
+g01
+```
+
+### Ejemplo 2
+
+```{r, echo=F}
+g01
+```
+
+### Ejemplo 3
+
+```{r, echo=F}
+g01
+```
+
+### Ejemplo 4
+
+```{r, echo=F}
+g01
+```
+
+### Ejemplo 4
+
+```{r, echo=F}
+g01
+```
+
+### Ejemplo 6
+
+```{r, echo=F}
+g01
+```
+

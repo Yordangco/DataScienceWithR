@@ -20,6 +20,8 @@ knitr::opts_chunk$set(echo = TRUE)
 library(httr)
 library(readxl)
 library(lubridate)
+suppressWarnings(suppressMessages(library(rAmCharts)))
+suppressWarnings(suppressMessages(library(inspectdf)))
 urlTipoCambio<-"https://tipodecambio.paginasweb.cr/api/"
 urlCasosCovid<-"https://api.covid19api.com/country/costa-rica?from="
 ```
@@ -156,8 +158,11 @@ readBD<-function(){
 
 ### Metodo que manipula los datos base
 ```{r}
+#Separa la fecha
 addColumns<-function(baseDatos){
+  baseDatos <-baseDatos %>% mutate(Anio=year(Fecha),Mes=month(Fecha),Dia=day(Fecha))
   
+  return(baseDatos)
 }
 ```
 
@@ -166,12 +171,37 @@ addColumns<-function(baseDatos){
 ```{r}
 library(dplyr)
 BD<-cargaDatos()
-BD
+
+BaseDatos2<-addColumns(BD)
+BaseDatos2
 ```
 
 
 ## Gráficos
 ```{r}
-show_plot(inspect_imb(BD))
+amBarplot(x = "Fecha", y = "CantidadCovid", data = BD, labelRotation = 90)
+```
+```{r}
+ResumenUSDMes<-BaseDatos2 %>% group_by(Mes) %>% summarise(Compra=mean(CompraUSD),Venta=mean(VentaUSD))
+
+
+
+ResumenUSDMes$Mes<-as.character(month(ResumenUSDMes$Mes, label = TRUE, abbr = FALSE))
+
+amBarplot(x = "Mes", y = c("Compra", "Venta"), data = ResumenUSDMes, legend = TRUE, main = "Comparación de promedios de tipo de cambio del dolar",
+        mainColor = "black", mainSize = 15, creditsPosition = "top-left", ylab = "Tipo cambio",xlab = "Meses")
+```
+
+```{r}
+data(citytemp)
+
+hc <- highchart() %>% 
+  hc_xAxis(categories = citytemp$month) %>% 
+  hc_add_series(name = "Tokyo", data = citytemp$tokyo) %>% 
+  hc_add_series(name = "London", data = citytemp$london) %>% 
+  hc_add_series(name = "Other city",
+                data = (citytemp$tokyo + citytemp$london)/2)
+
+hc
 ```
 

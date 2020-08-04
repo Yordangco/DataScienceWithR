@@ -1,0 +1,70 @@
+---
+title: "Nivel 4 Tema 4: Informe ejecutivo: 3- Tipo presentación"
+author: "Yordan Garcia Corrales"
+
+output:
+  ioslides_presentation:
+    logo: logoR.png # Debe crear esta imagen de logo de su elección
+    widescreen: true #  ioslides_presentation es la opcion de formato
+    smaller: true
+    #incremental: true
+    #transition: slower
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+# https://bookdown.org/yihui/rmarkdown/ioslides-presentation.html
+# 
+```
+
+
+## Diapositiva 1
+
+```{r, echo=F}
+suppressWarnings(suppressMessages(library(highcharter)))
+suppressWarnings(suppressMessages(library(ggplot2)))
+suppressWarnings(suppressMessages(library(dplyr)))
+suppressWarnings(suppressMessages(library(DT)))
+
+Datos <- mpg
+datatable(head(Datos))
+
+```
+
+
+## Diapositiva 2
+
+```{r, echo=F}
+# Crear grupo de datos
+Datos02 <- Datos %>%
+  count(class, year) %>%
+  glimpse()
+
+```
+
+
+## Diapositiva 3
+
+```{r, echo=F}
+
+suppressWarnings(suppressMessages(hchart(Datos02, "column", hcaes(x = class, y = n, group = year)) %>% hc_add_theme(hc_theme_chalk())))
+
+```
+
+
+## Bar graphic
+
+```{r, echo=F}
+suppressWarnings(suppressMessages(hchart(Datos02, "bar", hcaes(x = class, y = n, group = year)) %>% hc_add_theme(hc_theme_chalk())))
+```
+
+
+## Pie graphic
+```{r, echo=F}
+hchart(Datos02 %>% filter(year==2008) , "pie", hcaes(x = class, y = n)) %>% hc_add_theme(hc_theme_538())
+```
+
+
+## Thank you very much
+
+![](logoR.png){width=90%,height=90%}

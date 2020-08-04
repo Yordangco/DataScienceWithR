@@ -1,0 +1,106 @@
+---
+title: "Using shiny"
+author: "Yordan García Corrales"
+date: "27/7/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+suppressWarnings(suppressMessages(library(shiny)))
+```
+
+# Empty application
+```{r}
+server <- function(input, output) {} # Does not have anything
+interface <- fluidPage("Data Science")
+shinyApp(ui = interface, server = server)
+```
+## Examples with graphics
+```{r}
+servidor <- function(input, output) {
+  
+  #PESTANA 1 con dos graficos, uno estático y otro dinámico.
+  
+  # Gráfico dímanico vinculado a opciones de menu
+  output$grafico1 <- renderPlot({ # Con renderplot se actualiza de forma automatica
+  barplot(1:input$Cant,# el input$Cant se crea en la interfaz y permite selección de opción
+          col="green",main="Gráfico dinámico")}) 
+  
+  # Gráfico estatico para ver la diferencia con el dimanico
+  output$grafico2 <- renderPlot({ # Con renderplot se actualiza de forma automatica
+    barplot(1:8, # este insumo es fijo y solo grafica 8 números
+            col="blue", main="Gráfico estático")})
+  
+  
+  #PESTANA 2
+  # Gráfico dinámico vinculado a opciones de zoom
+  output$grafico3 <- renderPlot({ # Con renderplot se actualiza de forma automatica
+    barplot(1:input$zoom,# el input$zoom se crea en la interfaz
+            col="red")}) 
+  
+  #PESTANA 3
+  # Gráfico dinámico vinculado a opciones de zoom
+  output$grafico4 <- renderPlot({ # Con renderplot se actualiza de forma automatica
+    plot(1:input$zoom2,# el input$zoom se crea en la interfaz
+            col="red3",
+         main = "Gráfico dinámico 2",
+         pch=18)}) 
+  
+}
+
+# Se define la interfaz de usuario
+interfaz <- fluidPage(
+  sidebarLayout(
+    sidebarPanel( # Inicia Panel de opciones a la izquierda
+      
+      # titulo de las opciones
+      titlePanel("Opciones de navegacion de la aplicación"),
+      
+      #Creación de menús para dinamizar los gráficos
+      p("Seleccion de cantidad"), # texto para mostrar descripción de las opciones
+      
+      # Creación de un menú tipo lista desplegable
+      selectInput(inputId = "Cant", # nombre del output creado en el servidor.
+                  label="Opciones para pestaña 1", # Etiqueta del input
+                  choices = c(1:7), # opciones del desglose (rango de la lista)
+                  selected = 3), # donde se posiciona el valor inicialmente
+      
+      # Creación de un insumo tipo zoom
+      sliderInput("zoom", # nombre del output creado en el servidor
+                  "Opciones para pestaña 2", # descripcion de la opcion 
+                  min = 1, # Inicio del rango
+                  max = 20, # Fin del rango
+                  value = 5 # donde se posiciona el valor inicialmente
+                  ),  
+      
+      # Creación de un insumo tipo zoom
+      sliderInput("zoom2", # nombre del output creado en el servidor
+                  "Opciones para pestaña 3", # descripcion de la opcion 
+                  min = 1, # Inicio del rango
+                  max = 30, # Fin del rango
+                  value = 8 # donde se posiciona el valor inicialmente
+                  )
+    ), # cierre de panel de opciones a la izquierda
+    
+    #Inicio panel principal (pestañas de visualizaciones) o panel central
+    mainPanel(
+      tabsetPanel(type="tabs", #Tabs es para crear pestanas de seleccion (Salida de los graficos)
+                  tabPanel("Pestaña 1", # Nombre de la pestaña
+                           plotOutput(outputId = "grafico1"), # Insumo utilizado
+                           tabPanel("Pestaña 1", # Se repite pestaña para agregarle otro insumo.
+                                    plotOutput(outputId = "grafico2"))), # termina la primer pestaña
+                  tabPanel("Pestaña 2",plotOutput(outputId = "grafico3")),
+                  tabPanel("Pestaña 3",plotOutput(outputId = "grafico4"))
+      )
+    )
+  )
+)
+
+# Llamado a la función shinyApp
+shinyApp(ui = interfaz, server = servidor)
+```
+
