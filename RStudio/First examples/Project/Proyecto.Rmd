@@ -1,14 +1,13 @@
 ---
-title: "Proyecto"
+title: "Impacto del Covid en el tipo de cambio"
 author: "Yordan García Corrales"
 date: "20/6/2020"
 output: 
-  html_document:
-     toc: true
-     toc_depth: 6
-     number_section: true
-     toc_float: true
-     theme: readable
+  flexdashboard::flex_dashboard:
+    orientation: columns
+    # social: menu # compartir contenido
+    # source_code: embed # Ver el codigo interno
+    vertical_layout: fill
 ---
 
 ```{r setup, include=FALSE}
@@ -16,35 +15,20 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 
-```{r}
+```{r message=FALSE, warning=FALSE, include=FALSE}
 library(httr)
 library(readxl)
 library(lubridate)
+library(dplyr)
 suppressWarnings(suppressMessages(library(rAmCharts)))
 suppressWarnings(suppressMessages(library(inspectdf)))
+suppressWarnings(suppressMessages(library(highcharter)))
 urlTipoCambio<-"https://tipodecambio.paginasweb.cr/api/"
 urlCasosCovid<-"https://api.covid19api.com/country/costa-rica?from="
 ```
 
-```{r}
-BaseDatos<-data.frame()
-
-casosCovid <- GET(url = "https://api.covid19api.com/country/costa-rica?from=2020-03-19T00:00:00Z&to=2020-06-20T00:00:00Z")
-
-#status_code(result)
-#headers(result)
-#str(content(result)) #Muestra todo el contenido como texto.
-#<-content(tipoCambio) #Devuelve el contenido el formato list
-#contenidoTipoCambio
-
-#contenidoCasosCovid<-content(casosCovid) #Devuelve el contenido el formato list
-#length(contenidoCasosCovid)
-
-```
-## Metodos
-
+```{r message=FALSE, warning=FALSE, include=FALSE}
 ### Metodos extractores de datos necesarios de los API
-```{r}
 extaerCasos<-function(datos){ #Extrae la cantidad de positivos en un vector
   aux<-NULL
   if(!is.null(datos)){
@@ -68,9 +52,8 @@ extaerfechas<-function(datos){#Extrae las fechas de positivos en un vector
 }
 ```
 
-### Carga datos 
+```{r message=FALSE, warning=FALSE, include=FALSE}
 #### Carga los tipos de cambio con respecto a la compra del dolar
-```{r}
 cargaTipoCambio<-function(fechas){
   vectorTipoCambioCompra<-NULL
   vectorTipoCambioVenta<-NULL
@@ -90,32 +73,32 @@ cargaTipoCambio<-function(fechas){
 }
 ```
 
+```{r message=FALSE, warning=FALSE, include=FALSE}
 #### CargaDatos de los API de casos covid-19 y guarda en xlsx
-```{r}
 cargaDatos<-function(){
   library(httr)
   library(xlsx)
   library(lubridate)
   
   suppressMessages(baseDatosOriginal<-readBD())#Leer un archivo xml
-  baseDatosOriginal$...1<-NULL
   if(!is.null(baseDatosOriginal)){ # Si la base de datos tiene algo carga desde la fecha mayor a hoy
     hoy<-Sys.Date()
     fechaMayor<-ymd(max(baseDatosOriginal$Fecha))
     if(fechaMayor!=hoy & fechaMayor!= (hoy %m+% days(-1))){
-    print("Entro al if")
-    casosCovid<-GET(url=paste0(urlCasosCovid,fechaMayor,"&to=",hoy))#Consume API
-    Fecha<-extaerfechas(casosCovid)#Extraen todas las fechas
-    Fecha<-as.Date(Fecha)
-    Fecha<-format(as.Date(Fecha, format="%d/%m/%Y"),"%Y/%m/%d")
-    TipoCambio<-cargaTipoCambio(Fecha)#Carga el vector de tipo de cambio
+      
+      fechaMayor<-(fechaMayor %m+% days(1))
+      casosCovid<-GET(url=paste0(urlCasosCovid,fechaMayor,"&to=",hoy))#Consume API
+      Fecha<-extaerfechas(casosCovid)#Extraen todas las fechas
+      Fecha<-as.Date(Fecha)
+      Fecha<-format(as.Date(Fecha, format="%d/%m/%Y"),"%Y/%m/%d")
+      TipoCambio<-cargaTipoCambio(Fecha)#Carga el vector de tipo de cambio
     
-    BaseDatos<-data.frame(
-    Fecha,
-    CantidadCovid=extaerCasos(casosCovid),TipoCambio)
-    BaseDatos<- rbind(baseDatosOriginal,BaseDatos)
-    BaseDatos
-    write.xlsx(x=BaseDatos,file = "BaseDatosCovid.xlsx",sheetName = "Datos")
+      BaseDatos<-data.frame(
+      Fecha,
+      CantidadCovid=extaerCasos(casosCovid),TipoCambio)
+      BaseDatos<- rbind(baseDatosOriginal,BaseDatos)
+      BaseDatos
+      write.xlsx(x=BaseDatos,file = "BaseDatosCovid.xlsx",sheetName = "Datos")
     }else{
       BaseDatos<-baseDatosOriginal
     }
@@ -141,67 +124,230 @@ cargaDatos<-function(){
 
 ```
 
+```{r message=FALSE, warning=FALSE, include=FALSE}
 ### Metodo que lee de la Base de datos xlsx
-```{r}
 readBD<-function(){
   library(readxl)
   
   baseDatos<-NULL
-  if(file.exists(paths = "BaseDatosCovid.xlsx")){
+  if(file.exists(paths = "BaseDatosCovid.xlsx")){#Valida que el archivo exista
     baseDatos<-read_xlsx(path = "BaseDatosCovid.xlsx",sheet = "Datos")
+    baseDatos$...1<-NULL
   }
-  
   return(baseDatos)
 }
 
 ```
 
+
+```{r message=FALSE, warning=FALSE, include=FALSE}
+### Metodo que carga los datos del tipo de cambio antes del covid-19
+#Separa la fecha, establece cantidad de casos nuevos por dia
+readBeforeCovid<-function(){
+  library(readxl)
+  
+  baseDatos<-NULL
+  if(file.exists(paths = "BaseDatosCovid.xlsx")){#Valida que el archivo exista
+    baseDatos<-read_xlsx(path = "BaseDatosCovid.xlsx",sheet = "BeforeCovid")
+    baseDatos$...1<-NULL
+  }
+  return(baseDatos)
+}
+```
+
+```{r message=FALSE, warning=FALSE, include=FALSE}
 ### Metodo que manipula los datos base
-```{r}
-#Separa la fecha
+#Separa la fecha, establece cantidad de casos nuevos por dia
 addColumns<-function(baseDatos){
   baseDatos <-baseDatos %>% mutate(Anio=year(Fecha),Mes=month(Fecha),Dia=day(Fecha))
-  
+   
+baseDatos <-baseDatos %>% mutate(NuevosCasos=c(0,diff(CantidadCovid)))  
   return(baseDatos)
 }
 ```
 
-
+```{r message=FALSE, warning=FALSE, include=FALSE}
 ## Carga de datos
-```{r}
-library(dplyr)
 BD<-cargaDatos()
 
 BaseDatos2<-addColumns(BD)
-BaseDatos2
-```
 
 
-## Gráficos
-```{r}
-amBarplot(x = "Fecha", y = "CantidadCovid", data = BD, labelRotation = 90)
-```
-```{r}
-ResumenUSDMes<-BaseDatos2 %>% group_by(Mes) %>% summarise(Compra=mean(CompraUSD),Venta=mean(VentaUSD))
+##Graficos 1 gAumentoCodiv
+#Aumento de casos de covid
+gAumentoCodiv<-amBarplot(x = "Fecha", y = "CantidadCovid", data = BD, labelRotation = 90)
 
+##Graficos 2 gTipoCambioMes
+#Fluctuación por mes
+ResumenUSDMes<-BaseDatos2 %>% group_by(Mes) %>% summarise(Compra=round(mean(CompraUSD),2),Venta=round(mean(VentaUSD),2))
 
-
+#Convierte el mes en texto
 ResumenUSDMes$Mes<-as.character(month(ResumenUSDMes$Mes, label = TRUE, abbr = FALSE))
 
-amBarplot(x = "Mes", y = c("Compra", "Venta"), data = ResumenUSDMes, legend = TRUE, main = "Comparación de promedios de tipo de cambio del dolar",
-        mainColor = "black", mainSize = 15, creditsPosition = "top-left", ylab = "Tipo cambio",xlab = "Meses")
+gTipoCambioMes<-pipeR::pipeline(amBarplot(x = "Mes", y = c("Compra", "Venta"), data = ResumenUSDMes, legend = TRUE, main = "Comparación mensual promedio del tipo de cambio",
+        mainColor = "black", mainSize = 15, creditsPosition = "top-left", ylab = "Tipo cambio",xlab = "Meses"),setChartCursor())
+
+##Graficos 3.1 gComportamientoDolar
+#Comportamiento del dolar desde el inicio de la pandemia
+Meses<-as.character(month(BaseDatos2$Mes, label = TRUE, abbr = FALSE))
+gComportamientoDolar <- highchart() %>% 
+  hc_xAxis(categories = Meses) %>% 
+  hc_add_series(name = "VentaUSD", data = BaseDatos2$VentaUSD) %>% 
+  hc_add_series(name = "CompraUSD", data = BaseDatos2$CompraUSD)%>% 
+  hc_title(
+    text = "<b>Comportamiento del dolar desde el inicio de la pandemia</b>",
+    margin = 20,
+    align = "left",
+    style = list(color = "black", useHTML = TRUE)
+    )
+
+##Graficos 3.2 gComportamientoCovid
+#Comportamiento de los nuevos casos desde el inicio de la pandemia
+Meses<-as.character(month(BaseDatos2$Mes, label = TRUE, abbr = FALSE))
+
+gComportamientoCovid <- highchart() %>% 
+  hc_xAxis(categories = Meses) %>% 
+  hc_add_series(name = "Casos Nuevos", data = BaseDatos2$NuevosCasos)%>% 
+  hc_title(
+    text = "<b>Comportamiento de casos nuevos atravez de los meses</b>",
+    margin = 20,
+    align = "center",
+    style = list(color = "black", useHTML = TRUE)
+    )
+
+##Graficos 4.1 gCasosMensuales
+#Cantidad de contagios mensuales
+ResumenCasosMes<-BaseDatos2 %>% group_by(Mes) %>% summarise(Casos=sum(NuevosCasos))
+
+ResumenCasosMes$Mes<-as.character(month(ResumenCasosMes$Mes, label = TRUE, abbr = FALSE))
+
+gCasosMensuales<-amBarplot(x = "Mes", y = "Casos", data = ResumenCasosMes,main = "Cantidad de contagios mensuales")
+
+##Graficos 4.2
+##ESTE SE AGARRA Y SE PEGA COMO GRAFICO PORQUE NO SE PUEDE GUARDAR EN VARIABLES
+gCasosPorMes<-hchart(ResumenCasosMes, "pie", hcaes(x = Mes, y = Casos)) %>% hc_add_theme(hc_theme_538())
+
+#----------------------------------------------------------------------------
+##Graficos 5.0 gCompraCasosMes
+###Comparación mensual del tipo de compra con respecto a los casos nuevos
+RSCompraCovid<-BaseDatos2 %>% group_by(Mes) %>% summarise(Compra=round(mean(CompraUSD),2),Casos=round(mean(NuevosCasos),2))
+
+#Convierte el mes en texto
+RSCompraCovid$Mes<-as.character(month(RSCompraCovid$Mes, label = TRUE, abbr = FALSE))
+
+gCompraCasosMes<-pipeR::pipeline(amBarplot(x = "Mes", y = c("Casos", "Compra"), data = RSCompraCovid, legend = TRUE, main = "Comparación mensual promedio del tipo de cambio",
+        mainColor = "black", mainSize = 15, creditsPosition = "top-left", ylab = "Tipo cambio",xlab = "Meses"),setChartCursor())
+
+##Graficos 5.1 gVentaCasosMes
+###Comparación mensual del tipo de venta con respecto a los casos nuevos
+RSVentaCovid<-BaseDatos2 %>% group_by(Mes) %>% summarise(Compra=round(mean(VentaUSD),2),Casos=round(mean(NuevosCasos),2))
+
+#Convierte el mes en texto
+RSVentaCovid$Mes<-as.character(month(RSVentaCovid$Mes, label = TRUE, abbr = FALSE))
+
+gVentaCasosMes<-pipeR::pipeline(amBarplot(x = "Mes", y = c("Casos", "Compra"), data = RSVentaCovid, legend = TRUE, main = "Comparación mensual promedio del tipo de cambio",
+        mainColor = "black", mainSize = 15, creditsPosition = "top-left", ylab = "Tipo cambio",xlab = "Meses"),setChartCursor())
+#------------------------------------------------------------------
+##1.3 gBehaviorBeforeCovid
+###Comportamiento del tipo de cambio antes de la pandemia
+DBBeforeCovid<-readBeforeCovid()
+gBehaviorBeforeCovid<-highchart() %>% 
+  hc_add_series(name = "VentaAntes", data = head(DBBeforeCovid,124)$VentaUSD) %>% 
+  hc_add_series(name = "CompraAntes", data = head(DBBeforeCovid,124)$CompraUSD)%>% 
+  hc_title(
+    text = "<b>Comportamiento del tipo de cambio antes de la pandemia</b>",
+    margin = 20,
+    align = "left",
+    style = list(color = "black", useHTML = TRUE)
+    )
+
+##1.4 gBehaviorSellCovid
+###Comportamiento de la venta del dolar antes y durante la pandemia
+gBehaviorSellCovid<-highchart() %>% 
+  hc_add_series(name = "Durante", data = head(BaseDatos2,124)$VentaUSD) %>% 
+  hc_add_series(name = "Antes", data = head(DBBeforeCovid,124)$VentaUSD) %>%
+  hc_title(
+    text = "<b>Comportamiento de la venta del dolar antes y durante la pandemia</b>",
+    margin = 20,
+    align = "left",
+    style = list(color = "black", useHTML = TRUE)
+    )
+
+##1.5 gBehaviorBuyCovid
+###Comportamiento de la compra del dolar antes y durante la pandemia
+gBehaviorBuyCovid<-highchart() %>% 
+  hc_add_series(name = "Durante", data = head(BaseDatos2,124)$CompraUSD) %>% 
+  hc_add_series(name = "Antes", data = head(DBBeforeCovid,124)$CompraUSD) %>%
+  hc_title(
+    text = "<b>Comportamiento de la compra del dolar antes y durante la pandemia</b>",
+    margin = 20,
+    align = "left",
+    style = list(color = "black", useHTML = TRUE)
+    )
+```
+## Tipo de cambio
+Análisis de información suministrada en intenet con respecto al tipo de cambio del dolar y la cantidad de casos nuevos de Covid a nivel de Costa Rica.
+
+# Tipo de cambio {.tabset}
+
+Column {data-width=500}  {.tabset}
+-----------------------------------------------------------------------
+### Comportamiento general durante Covid
+```{r, echo=F}
+gComportamientoDolar
 ```
 
-```{r}
-data(citytemp)
+### Comportamiento mensual durante Covid
+```{r, echo=F}
+gTipoCambioMes
+```
 
-hc <- highchart() %>% 
-  hc_xAxis(categories = citytemp$month) %>% 
-  hc_add_series(name = "Tokyo", data = citytemp$tokyo) %>% 
-  hc_add_series(name = "London", data = citytemp$london) %>% 
-  hc_add_series(name = "Other city",
-                data = (citytemp$tokyo + citytemp$london)/2)
 
-hc
+### Comportamiento general antes del Covid
+```{r, echo=F}
+gBehaviorBeforeCovid
+```
+
+
+### Comparación tipo de venta
+```{r, echo=F}
+gBehaviorSellCovid
+```
+
+
+### Comparación tipo de compra
+```{r, echo=F}
+gBehaviorBuyCovid
+```
+
+# Casos Covid {.tabset}
+Column {data-width=500}  {.tabset}
+-----------------------------------------------------------------------
+
+### Comportamiento general
+```{r, echo=F}
+gAumentoCodiv
+```
+
+### Comportamiento mensual 1.0
+```{r, echo=F}
+gCasosPorMes
+```
+
+### Comportamiento mensual 1.1
+```{r, echo=F}
+gCasosMensuales
+```
+
+
+```{r message=FALSE, warning=FALSE, include=FALSE}
+#Fechas<-seq(ymd("2019-11-01"),ymd("2020-03-05"),by="day")
+
+#Fechas<-as.Date(Fechas)
+#Fechas<-format(as.Date(Fechas, format="%d/%m/%Y"),"%Y/%m/%d")
+#TipoCambio<-cargaTipoCambio(Fechas)#Carga el vector de tipo de cambio
+
+#BaseDatos<-data.frame(Fecha=Fechas,TipoCambio)
+#write.xlsx(x=BaseDatos,file = "BaseDatosCovid.xlsx",sheetName = "BeforeCovid",append = TRUE)
 ```
 
