@@ -116,7 +116,7 @@ data_bar
 ```
 
 ```{r}
-data_gbar
+data_bar
 ```
 
 ```{r}
