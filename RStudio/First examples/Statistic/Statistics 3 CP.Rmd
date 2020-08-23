@@ -1,0 +1,127 @@
+---
+title: "Untitled"
+author: "Statistics 3"
+date: "23/8/2020"
+output: 
+  html_document:
+     toc: true
+     toc_depth: 6
+     number_section: true
+     toc_float: true
+     theme: readable
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+suppressWarnings(suppressMessages(library(FactoMineR)))
+suppressWarnings(suppressMessages(library(factoextra)))
+suppressWarnings(suppressMessages(library(readxl)))
+
+Datos <- read_excel("Consumo_Natural_SJ_1.xlsx")
+Datos <- as.data.frame(Datos)
+
+# Defino los nombres de las filas usando una variable
+rownames(Datos) <- Datos$Canton_SJ
+head(Datos)
+```
+```{r}
+Datos <- Datos[,-1] # Se eliminan las variables no numercias
+head(Datos)
+```
+## Componentes principales
+
+### Individuos filas
+```{r}
+# Los valores a graficar de componentes principales se crea con la funcion PCA
+Valores <- PCA(Datos, scale.unit=TRUE, # Estandarizar datos
+               ncp=5, # Numero de componentes principales 
+               graph = FALSE) # No graficar de una vez
+
+Valores
+```
+
+```{r}
+plot(Valores,axes=c(1, 2), # componentes graficados
+     choix="ind", # Para graficar los cantones (individuos o filas)
+     col.ind="blue",new.plot=TRUE)
+```
+### Variables columnas
+~~~~
+Si el ángulo formado es cercano a cero, indica que la correlación es alta y positiva.
+Si el ángulo formado es de 90 grados, indica que no esta relacionadas.
+Si el ángulo formado es de 180 grados, indica que la correlación es alta y negativa.
+~~~~
+```{r}
+plot(Valores, axes=c(1, 2), # componentes grafciados
+     choix="var", # Para graficar los productos (variables o columnas)
+     col.var="red",new.plot=TRUE)
+```
+
+## Using FactorExtra
+```{r}
+# Individuos
+fviz_pca_ind(Valores,ggtheme=theme_get(),col.ind = "blue")
+```
+
+```{r}
+# Variables
+fviz_pca_var(Valores,ggtheme=theme_get(),col.var = "red")
+```
+
+```{r}
+# Ambos
+fviz_pca_biplot(Valores,ggtheme=theme_get(),col.var = "red",col.ind = "blue")
+```
+
+### Para ello el coseno cuadrado debe ser igual o superior al 60%. Es bien representado
+```{r}
+# Ver todos los valores del coseno cuadrado para los individuos
+round(Valores$ind$cos2,3) # se redondea a 3 digitos para ver mejor los datos
+
+
+# sumar los cosenos de todos los componentes del individuo 1.
+sum(Valores$ind$cos2[1,])
+```
+
+### Filas
+```{r}
+# sumar los componentes 1 y 2 de los individuos y buscar las mejores representaciones
+cos2_ind <- (Valores$ind$cos2[,1]+Valores$ind$cos2[,2])*100
+round(cos2_ind,2)
+```
+#### Eliminando los menores a 10%
+
+```{r}
+# Crear el nuevo grafico de individuos elimina mal representados al 10%
+plot(Valores,axes=c(1, 2), choix="ind", # Para graficar los cantones
+     col.ind="blue",new.plot=TRUE, select="cos2 0.1")
+```
+
+#### Eliminando los menores a 60%
+```{r}
+# Crear el nuevo grafico de individuos elimina mal representados al 60%
+plot(Valores,axes=c(1, 2), choix="ind", # Para graficar los cantones
+     col.ind="blue",new.plot=TRUE, select="cos2 0.6")
+```
+
+### Columnas
+```{r}
+cos2_var <- (Valores$var$cos2[,1]+Valores$var$cos2[,2])*100
+round(cos2_var,2)
+```
+#### Eliminando los menores a 10%
+```{r}
+#ciculo de correlaciones de las variables elimina mal representados al 10%
+plot(Valores, axes=c(1, 2), choix="var", # Para graficar los productos
+     col.var="red",new.plot=TRUE, select="cos2 0.1")
+```
+#### Eliminando los menores a 50%
+```{r}
+#ciculo de correlaciones de las variables elimina mal representados al 50%
+plot(Valores, axes=c(1, 2), choix="var", # Para graficar los productos
+     col.var="red",new.plot=TRUE, select="cos2 0.5")
+```
+

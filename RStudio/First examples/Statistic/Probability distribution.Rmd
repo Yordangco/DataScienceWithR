@@ -1,0 +1,297 @@
+---
+title: "Probability distribution"
+author: "Yordan García Corrales"
+date: "20/8/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Discreet
+### Binomial Answer True or False
+~~~~
+En una fábrica de globos asegura que el 26% de ellos son verdes. Calcule la probabilidad de que si se escogen 20 al azar:
+
+exactamente 6 globos sean verdes.
+9 o más sean verdes.
+Solo 4 sean verdes.
+Solo 2 sean verdes.
+~~~~
+```{r}
+p <- 0.26 #Probabilidad sean verdes 
+q <- 1-p #Probabilidad sean otro color
+
+#Individual
+# a. exactamente 6 globos sean verdes.
+dbinom(6,20,p)
+```
+
+```{r}
+#Acumulada
+# b. 9 o más sean verdes.
+1-pbinom(8,20,p)
+```
+### Poisson
+~~~~
+Se realiza un experimento y se observa que una pieza metálica tiene en promedio 4 defectos. ¿Cuál es la probabilidad de en una pieza se tenga?
+
+ningún defecto.
+lo más 4 defectos.
+más de 2 defectos.
+no menos de 3 pero no más de 7 defectos.
+realice la prueba del punto d, usando las probabilidades puntuales.
+~~~~
+```{r}
+# a. ningún defecto.
+ppois(0,4)  #0 errores , 4 es el promedio
+
+
+# b. lo más 4 defectos.
+ppois(4,4)
+
+# c. más de 2 defectos.
+1-ppois(2,4)
+
+# d. no menos de 3 pero no más de 7 defectos.
+ppois(7,4) - ppois(2,4)
+
+# e. realice la prueba del punto d, usando las probabilidades puntuales.
+sum(dpois(7,4),dpois(6,4),dpois(5,4),dpois(4,4),dpois(3,4))
+```
+## Continuous Variables
+```{r}
+# Valores de referencia
+x<-seq(-3,3,0.1)
+
+# Probabilidad de z <= 1.63
+
+# Probabilidad acumulada
+pnorm(1.63,0,1)
+```
+
+```{r}
+# Coordenadas del grafico
+cord_x <- c(-3,seq(-3,1.63,0.01),1.63)
+cord_y <- c(0,dnorm(seq(-3,1.63,0.01)),0)
+```
+
+#### Menor que 
+```{r}
+curve(dnorm(x,0,1),xlim=c(-3,3),main="Curva Normal Estandar")
+polygon(cord_x,cord_y,col="red")
+```
+#### Entre
+```{r}
+# Probabilidad de -1 >= z <= 2
+
+# Probabilidad acumulada
+pnorm(2,0,1) - pnorm(-1,0,1)
+```
+
+```{r}
+# Coordenadas del grafico
+cord_x <- c(-1,seq(-1,2,0.01),2)
+cord_y <- c(0,dnorm(seq(-1,2,0.01)),0)
+```
+
+```{r}
+curve(dnorm(x,0,1),xlim=c(-3,3),main="Curva Normal Estandar")
+polygon(cord_x,cord_y,col="red")
+```
+
+### Example 2
+~~~~
+En el siguiente ejemplo se tiene la información del peso de un cajas de frutas exportadas . Estas cajas tiene un rango de peso desde 100 hasta las 310 libras, su media es de 210 y la desviación estandar de 25.
+~~~~
+```{r}
+# Rangos de los datos
+mini <- 100
+maxi <- 310
+por <- 0.5 # incremento
+
+# Crear los datos
+x <- seq(mini,maxi,por)
+
+# Probabilidad a obtener
+prob1 <- 190 
+prob2 <- 220
+
+# Medidas de tendencia central
+media <- 210
+desv_est <- 25
+```
+
+```{r}
+cord_xmin <- c(mini,seq(mini,prob1,por),prob1)
+cord_ymin <- c(0,dnorm(seq(mini,prob1,por),media,desv_est),0)
+```
+
+```{r}
+valor_min <- pnorm(prob1,media,desv_est)
+valor_min
+```
+
+```{r}
+curve(dnorm(x,media,desv_est),
+      xlim=c(mini,maxi),
+      main="Curva Normal para una probabilidad",
+      xlab="Valores",
+      ylab="Probabilidad")
+polygon(cord_xmin,cord_ymin,col="red")
+# Agregar un texto en el grafico
+text(prob1-prob1/10, # posicion en el eje x
+     .001, # posicion en el eje y
+     round(valor_min,4)*100, # valor que se desea mostrar
+     col="white", # color de la letra
+     cex=1.2 # tamaño del texto
+     )
+```
+#### Entre
+```{r}
+cord_xps <- c(prob1,seq(prob1,prob2,por),prob2)
+cord_yps <- c(0,dnorm(seq(prob1,prob2,por),media,desv_est),0)
+
+valor_entre <- pnorm(prob2,media,desv_est) - pnorm(prob1,media,desv_est)
+valor_entre
+
+curve(dnorm(x,media,desv_est),
+      xlim=c(mini,maxi),
+      main="Curva Normal para rango de probabilidades",
+      xlab="Valores",
+      ylab="Probabilidad")
+polygon(cord_xps,cord_yps,col="blue")
+text(prob2-prob1/15, .001,round(valor_entre,4)*100,col="white", cex=1.2)
+```
+#### Mayor que
+```{r}
+cord_xmax <- c(prob2,seq(prob2,maxi,por),maxi)
+cord_ymax <- c(0,dnorm(seq(prob2,maxi,por),media,desv_est),0)
+
+
+valor_max <- 1-pnorm(prob2,media,desv_est)
+valor_max
+
+curve(dnorm(x,media,desv_est),
+      xlim=c(mini,maxi),
+      main="Curva Normal para resto de probabilidad",
+      xlab="Valores",
+      ylab="Probabilidad")
+polygon(cord_xmax,cord_ymax,col="green")
+text(prob2+prob2/10, .001,round(valor_max,4)*100,col="black", cex=1.2)
+```
+
+```{r}
+# Obtener el valor mínimo
+qnorm(valor_min,mean=media, sd=desv_est)
+
+# Obtener el valor máximo
+qnorm(1-valor_max,mean=media, sd=desv_est)
+
+# Suma de las probabilidades obtenidas (debe cerrar en 100)
+sum(valor_min,valor_entre,valor_max)*100
+```
+
+### Custom function
+```{r}
+graf_normal <- function(mini,maxi,prob1,prob2,media,desv_est,por=0.5){
+
+#################################################################
+#### EXPLICACION DE LOS PARAMETROS O ARGUMENTO DE LA FUNCIÓN ####
+#################################################################
+
+# Rangos de los datos
+# mini = valor mínimo del rango
+# maxi = valor máximo del rango
+# por = incremento, si no se indica sera de 0.5
+
+# Probabilidades a obtener
+# prob1 = probabilidad 1 
+# prob2 = probabilidad 2
+
+# Medidas de tendencia central
+# media = promedio 
+# desv_est = desviacion estandar
+
+#################################################################
+#################################################################
+  
+# Crear los datos por medio de la función seq
+x <- seq(mini,maxi,por)
+
+# coordenadas menor que
+cord_xmin <- c(mini,seq(mini,prob1,por),prob1)
+cord_ymin <- c(0,dnorm(seq(mini,prob1,por),media,desv_est),0)
+
+valor_min <- pnorm(prob1,media,desv_est)
+
+# Grafico menor que
+g01 <- c(curve(dnorm(x,media,desv_est),
+      xlim=c(mini,maxi),
+      main="Curva Normal para una probabilidad: MENOR QUE",
+      xlab="Valores",
+      ylab="Probabilidad"),
+    polygon(cord_xmin,cord_ymin,col="red"),
+    text(prob1-prob1/10, .001,round(valor_min,4)*100,col="white", cex=1.2))
+
+
+# coordenadas entre
+cord_xps <- c(prob1,seq(prob1,prob2,por),prob2)
+cord_yps <- c(0,dnorm(seq(prob1,prob2,por),media,desv_est),0)
+
+
+valor_entre <- pnorm(prob2,media,desv_est) - pnorm(prob1,media,desv_est)
+
+# Grafico entre
+g02 <- c(curve(dnorm(x,media,desv_est),
+          xlim=c(mini,maxi),
+          main="Curva Normal para rango de probabilidades: ENTRE",
+          xlab="Valores",
+          ylab="Probabilidad"),
+        polygon(cord_xps,cord_yps,col="blue"),
+        text(prob2-prob1/15, .001,round(valor_entre,4)*100,col="white", cex=1.2))
+
+# coordenadas mayor que
+cord_xmax <- c(prob2,seq(prob2,maxi,por),maxi)
+cord_ymax <- c(0,dnorm(seq(prob2,maxi,por),media,desv_est),0)
+
+valor_max <- 1-pnorm(prob2,media,desv_est)
+
+
+# Grafico mayor que
+g03 <- c(curve(dnorm(x,media,desv_est),
+        xlim=c(mini,maxi),
+        main="Curva Normal para resto de probabilidad: MAYOR QUE",
+        xlab="Valores",
+        ylab="Probabilidad"),
+      polygon(cord_xmax,cord_ymax,col="green"),
+      text(prob2+prob2/10, .001,round(valor_max,4)*100,col="black", cex=1.2))
+
+g04 <- c(curve(dnorm(x,media,desv_est),
+        xlim=c(mini,maxi),
+        main="Curva Normal Conjunta: GRAFICO SEGMENTADO",
+        xlab="Valores",
+        ylab="Probabilidad"),
+      polygon(cord_xmin,cord_ymin,col="red"),
+      text(prob1-prob1/10, .001,round(valor_min,4)*100,col="white", cex=1.2),
+      polygon(cord_xps,cord_yps,col="blue"),
+      text(prob2-prob1/15, .001,round(valor_entre,4)*100,col="white", cex=1.2),
+      polygon(cord_xmax,cord_ymax,col="green"),
+      text(prob2+prob2/10, .001,round(valor_max,4)*100,col="black", cex=1.2))
+
+
+resumen <- data.frame(Rubro=c("Valor minimo", "Valor entre", "Valor maximo"),
+                      Probabilidad=round(c(valor_min,valor_entre,valor_max),4))
+
+return(DT::datatable(resumen)) # No hace falta retornar los graficos ya que se muestran sin hacerlo
+}
+
+
+# Va desde 100 a 310, quiero la de 190,220. Tiene una media 210 y desviacion standard 25
+graf_normal(100,310,190,220,210,25)
+```
+```{r}
+graf_normal(110,320,200,230,220,35)
+```
+

@@ -1,0 +1,275 @@
+---
+title: "Statistics 2"
+author: "Yordan García Corrales"
+date: "21/8/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+suppressWarnings(suppressMessages(library(xts)))
+suppressWarnings(suppressMessages(library(dygraphs)))
+suppressWarnings(suppressMessages(library(forecast)))
+suppressWarnings(suppressMessages(library(itsmr)))
+suppressWarnings(suppressMessages(library(tidyverse)))
+suppressWarnings(suppressMessages(library(dbplyr)))
+suppressWarnings(suppressMessages(library(tidyr)))
+suppressWarnings(suppressMessages(library(bindrcpp)))
+suppressWarnings(suppressMessages(library(timeDate)))
+suppressWarnings(suppressMessages(library(lubridate)))
+
+
+IMAE <- read.csv("IMAE.csv", header=T,sep=";", dec=",")
+
+IMAE$Fecha <- dmy(IMAE$Fecha)
+
+head(IMAE)
+```
+
+```{r}
+SerieIMAE <- ts(data = IMAE$IMAE, start = c(1991, 1), end = c(2019, 6), frequency = 12)
+
+plot(SerieIMAE, col="red", main="IMAE de Costa Rica")
+```
+
+```{r}
+resI<-spec.pgram(IMAE, log = "no")
+#head(resI)
+
+head(resI$freq)
+
+#PERIODOS MAS RELEVANTES
+# Se ordenan los periodos
+periodos_orden <- order(resI$spec[,2],resI$freq,decreasing = TRUE)
+head(periodos_orden)
+
+# Se obtienes los 3 mejores periodos ignorando el 1
+max1 <- resI$freq[30]
+max1
+
+
+abline(v=max1, lty="solid",col="red")
+
+max2 <- resI$freq[4]
+max2
+
+
+abline(v=max2, lty="solid",col="blue")
+
+max3 <- resI$freq[3]
+max3
+
+abline(v=max3, lty="solid",col="green")
+```
+
+## Same graphic using dygraph
+```{r}
+dygraph(resI, ylab = 'Espectros',xlab = 'Frecuencia', main = "IMAE de Costa Rica")%>%
+  dyEvent(max1, color="red") %>%
+  dyEvent(max2, color="orange") %>%
+  dyEvent(max3, color="purple") %>%
+  dyOptions(colors = "blue") %>%
+  dyAxis("y", valueRange = c(0, 4)) %>% # Rango del eje y
+  dyRangeSelector() %>%
+  dyOptions(drawPoints = TRUE)
+```
+
+## Predictions
+```{r}
+Datos04 <- IMAE$IMAE
+
+auto.arima(Datos04)
+```
+
+```{r}
+## ARIMA(4,1,2)
+fit<-arima(Datos04,order=c(4,1,2))
+
+D4.pred<-predict(fit,n.ahead=12) # n.ahead es la Q de periodos
+D4.pred
+```
+
+```{r}
+layout(matrix(c(1,1,2,3), 2, 2, byrow = TRUE))
+plot(Datos04,ylim=c(0,150),type="o") # 
+lines(D4.pred$pred,col="red",type="o")
+lines(D4.pred$pred+2*D4.pred$se,col="red",lty=3,type="o")
+lines(D4.pred$pred-2*D4.pred$se,col="red",lty=3,type="o")
+
+# Autocorrelaciones
+acf(Datos04, main="Autocorrelación Simple",col="black",ylim=c(-1,1))
+pacf(Datos04,main="Autocorrelación Parcial",col="black",ylim=c(-1,1))
+```
+### Same graphic
+```{r}
+IMAE_xts <- xts(Datos04,order.by=IMAE$Fecha,frequency=12)
+
+preds<-D4.pred$pred
+LimInf<-preds-2*D4.pred$se
+LimSup<-preds+2*D4.pred$se
+
+#elaboracion de perido 2 de la serie, fecha inicio fecha fin de los datos de prediccion
+per_2<-seq(as.Date("2019-07-01"),as.Date("2020-06-01"),"month")
+per_2
+```
+
+```{r}
+todas.series<-cbind(Observado = IMAE_xts,
+                    LimInf=xts(LimInf,order.by=per_2),
+                    Pronostico=xts(preds,order.by=per_2),
+                    LimSup=xts(LimSup,order.by=per_2))
+
+dygraph(todas.series,main="IMAE de Costa Rica",ylab="Indice")%>%
+  dySeries(c("LimInf", "Pronostico", "LimSup"), label = "Pronostico")%>%
+  dyRangeSelector(height = 20, strokeColor = "")%>%  
+  dyOptions(axisLineColor = "navy", 
+            gridLineColor = "lightblue") %>%
+
+  # Agregar areas sombreadas
+  dyShading(from = "2008-1-1", to = "2010-12-1") %>%
+  dyShading(from = "2017-1-1", to = "2018-12-1",color = "#FFE1E1") %>%
+  dyShading(from = 100, to = 110, axis = "y",color = "#FFE1E1") # sombras en eje y
+```
+
+## Example 2
+```{r}
+Datos05 <- IMAE$IMAE
+
+## SARIMA(0,1,1)(0,1,1)
+# Con periodo = 12 por ser el principal
+fit<-arima(Datos05,order=c(0,1,1),seasonal=list(order=c(0,1,1),period=12))
+D5.pred<-predict(fit,n.ahead=12)
+D5.pred
+```
+```{r}
+layout(matrix(c(1,1,2,3), 2, 2, byrow = TRUE))
+plot(Datos05,ylim=c(0,150),type="o") # 
+lines(D5.pred$pred,col="red",type="o")
+lines(D5.pred$pred+2*D5.pred$se,col="red",lty=3,type="o")
+lines(D5.pred$pred-2*D5.pred$se,col="red",lty=3,type="o")
+
+acf(Datos05, main="Autocorrelación Simple",col="black",ylim=c(-1,1))
+pacf(Datos05,main="Autocorrelación Parcial",col="black",ylim=c(-1,1))
+```
+
+### Dygraph 
+```{r}
+IMAE1_xts <- xts(Datos05,order.by=IMAE$Fecha,frequency=12)
+
+preds<-D5.pred$pred
+LimInf<-preds-2*D4.pred$se
+LimSup<-preds+2*D4.pred$se
+```
+
+```{r}
+todas.series<-cbind(Observado = IMAE1_xts,
+                    LimInf=xts(LimInf,order.by=per_2),
+                    Pronostico=xts(preds,order.by=per_2),
+                    LimSup=xts(LimSup,order.by=per_2))
+
+dygraph(todas.series,main="IMAE de Costa Rica",ylab="Indice")%>%
+  dySeries(c("LimInf", "Pronostico", "LimSup"), label = "Pronostico")%>%
+  dyRangeSelector(height = 20, strokeColor = "")%>%  
+  dyOptions(axisLineColor = "navy", 
+            gridLineColor = "lightblue")
+```
+## Example 3
+```{r}
+Datos04 <- IMAE$IMAE
+
+auto.arima(Datos04)
+
+## ARIMA(4,1,2)
+fit<-arima(Datos04,order=c(4,1,2))
+D4.pred<-predict(fit,n.ahead=4)
+D4.pred
+```
+
+```{r}
+layout(matrix(c(1,1,2,3), 2, 2, byrow = TRUE))
+plot(Datos04,ylim=c(0,150),type="o") # 
+lines(D4.pred$pred,col="red",type="o")
+lines(D4.pred$pred+2*D4.pred$se,col="red",lty=3,type="o")
+lines(D4.pred$pred-2*D4.pred$se,col="red",lty=3,type="o")
+acf(Datos04, main="Autocorrelación Simple",col="black",ylim=c(-1,1))
+pacf(Datos04,main="Autocorrelación Parcial",col="black",ylim=c(-1,1))
+```
+### dygraph
+```{r}
+IMAE_xts <- xts(Datos04,order.by=IMAE$Fecha,frequency=12)
+
+preds<-D4.pred$pred
+LimInf<-preds-2*D4.pred$se
+LimSup<-preds+2*D4.pred$se
+
+#elaboracion de perido 2 de la serie, fecha inicio fecha fin de los datos de prediccion
+per_2<-seq(as.Date("2019-07-01"),as.Date("2019-10-01"),"month")
+per_2
+```
+
+```{r}
+todas.series<-cbind(Observado = IMAE_xts,
+                    LimInf=xts(LimInf,order.by=per_2),
+                    Pronostico=xts(preds,order.by=per_2),
+                    LimSup=xts(LimSup,order.by=per_2))
+
+dygraph(todas.series,main="IMAE de Costa Rica",ylab="Indice")%>%
+  dySeries(c("LimInf", "Pronostico", "LimSup"), label = "Pronostico")%>%
+  dyRangeSelector(height = 20, strokeColor = "")%>%  
+  dyOptions(axisLineColor = "navy", 
+            gridLineColor = "lightblue")
+```
+
+## Test Normal
+```{r}
+# Test chi-square de Pearson
+nortest::pearson.test(diff(SerieIMAE))
+```
+
+```{r}
+# Test Lilliefors (Kolmogorov-Smirnov)
+nortest::lillie.test(diff(SerieIMAE))
+```
+
+```{r}
+# Test de Cramer-von Mises
+nortest::cvm.test(diff(SerieIMAE))
+```
+
+```{r}
+# Graficos
+hist(diff(SerieIMAE),prob=T,ylim=c(0,0.17),
+     col="red",
+     main="Datos IMAE CR")
+
+# Valores del grafico
+mu<-mean(diff(SerieIMAE))
+sigma<-sd(diff(SerieIMAE))
+x<-seq(-100,100,length=100)
+
+y<-dnorm(x,mu,sigma)
+
+lines(x,y,lwd=2,col="blue")
+```
+
+## Descomposicion de la serie
+```{r}
+Desc_IMAE <- stl(SerieIMAE,s.window="periodic")
+
+# Componentes de la serie
+# Desc_IMAE
+
+# Graficas
+plot(Desc_IMAE)
+```
+
+```{r}
+Desc_IMAE <- stl(log(SerieIMAE),s.window="periodic")
+
+# Graficas
+plot(Desc_IMAE)
+```
+

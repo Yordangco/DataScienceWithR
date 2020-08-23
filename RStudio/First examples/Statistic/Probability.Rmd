@@ -1,0 +1,126 @@
+---
+title: "Probability"
+author: "Yordan García Corrales"
+date: "19/8/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Simple probability
+```{r}
+prob_eq <- function(cf,cp){
+  
+# cf = casos favorable, cp = Casos posibles
+  
+  prob <- cf/cp
+  
+  return(paste0(round(prob*100,2),"%"))
+  
+}
+
+# Probabilidad de quedarse
+prob_eq(14,35)
+```
+
+## Permutations
+```{r}
+N <- 10
+n <- 3
+
+# Permutaciones: El orden de los elementos importa (a+b es distinto que b+a)
+perm <- factorial(N) / factorial(N-n)
+perm
+```
+
+```{r}
+#Order of permutations but this a+b is equal than b+a
+comb <- factorial(N) / (factorial(n) * (factorial(N-n)))
+comb
+```
+## Conditional probability
+### P (B/A) = P(AB) / P(A)
+```{r}
+# vector de resultados
+result <- c(2:12)
+
+# vector de frecuencias
+frec <- c(1,2,3,4,5,6,5,4,3,2,1)
+
+# Tabla de resultados y frecuencias
+Dados <- data.frame(Resultado=result,Frecuencia=frec)
+Dados
+```
+```{r}
+suppressWarnings(suppressMessages(library(dplyr)))
+
+# Resultados mayores a 5
+mayor_a_5 <- between(Dados$Resultado, 6,12)
+
+# Extraer solo datos mayores a 5
+Datos_5 <- Dados[mayor_a_5,]
+
+# Se obtiene la suma de las frecuencias
+total <- sum(Dados$Frecuencia)
+total
+```
+### P(A)
+```{r}
+## Posible causes
+sum_may_5 <- sum(Datos_5$Frecuencia)
+sum_may_5
+```
+### P(A) %
+```{r}
+#P(A)
+porc_mayor_5 <- round(sum_may_5/total*100,2)
+porc_mayor_5
+```
+```{r}
+# Resultados mayores a 5 o menor a 10
+entre_6_10 <- between(Dados$Resultado, 6,10) # vector lógico
+
+# Extraer solo datos mayores a 5
+Datos_6_10 <- Dados[entre_6_10,]
+
+# Se obtiene la suma de las frecuencias
+total <- sum(Dados$Frecuencia)
+total
+```
+### P(B)
+```{r}
+
+sum_6_10 <- sum(Datos_6_10$Frecuencia)
+sum_6_10
+```
+### P(B) %
+```{r}
+porc_6_10 <- round(sum_6_10/total*100,2)
+porc_6_10
+```
+
+## Bayes Teorem
+
+ $$P(A|B)=\frac{0,03.0,55}{0,03.0,55 + 0,06.0,45}=37,93\%$$
+```{r}
+Pa <- 0.55
+Pb <- 1-Pa
+
+#Probabilidad de no tener defectos en la primer máquina
+Psda <- 0.97
+
+#Probabilidad de tener defectos en la primer máquina
+Pcda <- 1-Psda
+
+#Probabilidad de no tener defectos en la segunda máquina
+Psdb <- 0.94
+
+#Probabilidad de tener defectos en la segunda máquina
+Pcdb <- 1-Psdb
+
+# realizar el cálculo probabilidad combinada
+P_a_b <- round((Pcda*Pa)/(Pcda*Pa+(Pcdb*Pb)),4)*100
+P_a_b
+```

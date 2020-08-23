@@ -1,0 +1,199 @@
+---
+title: "Statistic Methods"
+author: "Yordan García Corrales"
+date: "17/8/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+suppressWarnings(suppressMessages(library(fdth)))
+suppressWarnings(suppressMessages(library(stats)))
+suppressWarnings(suppressMessages(library(moments)))
+```
+
+```{r}
+set.seed(100) 
+
+# Random datas
+D_ejemplo <- sort(sample(1:1000,100))
+head(D_ejemplo)
+D_ejemplo <- data.frame(Datos=as.numeric(D_ejemplo))
+```
+
+
+```{r}
+mean <- mean(D_ejemplo$Datos)
+mean
+
+median <- median(D_ejemplo$Datos)
+median
+
+```
+```{r}
+tb<-table(c(1,1,2,3,3,3,3))
+t_moda <- as.data.frame(tb)
+t_moda
+```
+
+## Costume mode
+```{r}
+Mode <- function(v){ 
+#Cálculo de la moda
+t_moda <- as.data.frame(table(v))
+pos <- which.max(t_moda$Freq)
+Mode <- as.numeric(as.character(t_moda$v[pos]))
+
+return(Mode)
+
+}  
+
+Dat_ej_2 <- c(1,2,3,3,3,4,5)
+
+Mode(Dat_ej_2)
+```
+
+```{r}
+Desv_est <- sd(D_ejemplo$Datos)
+Desv_est
+
+Varianza <- var(D_ejemplo$Datos)
+Varianza
+
+coef_var <- Desv_est/mean
+coef_var
+```
+## All quantiles
+```{r}
+quant_t <- quantile(D_ejemplo$Datos)
+quant_t
+```
+
+## Deciles
+```{r}
+v_dec <- seq(0, 1, length = 11) # From 0 to 1, these are porcentajes
+v_dec
+
+dec <- quantile(D_ejemplo$Datos, prob = v_dec, type=5)
+dec
+```
+
+## Percentiles
+```{r}
+v_prob <- c(0.15,0.27,0.38,0.45,0.68,0.79)
+
+perc <- quantile(D_ejemplo$Datos, prob = v_prob)
+perc
+```
+## Summary
+```{r}
+summary(D_ejemplo)
+```
+
+## Using files}
+```{r}
+BD <- read.csv2("BD1.csv")
+head(BD)
+```
+
+```{r}
+dim(BD)
+```
+
+```{r}
+hist(BD$Cantidad, main="Datos", labels=T, ylim = c(0, 600))
+```
+
+```{r}
+summary(BD)
+
+BD$Residencia<-as.factor(BD$Residencia)
+
+summary(BD)
+```
+
+### Check variables
+```{r}
+str(BD)
+```
+
+### Absolute mean 
+```{r}
+mad(BD$Cantidad)
+```
+### Covariance
+```{r}
+cor(BD$Cantidad,BD$Edad)
+```
+
+```{r}
+range(BD$Cantidad)
+```
+### Quantiles
+```{r}
+quantile(BD$Cantidad)
+```
+```{r}
+numbers <- fivenum(BD$Cantidad)
+numbers
+```
+
+```{r}
+IQR(BD$Cantidad) ##Calcule what is the center of the datas
+```
+
+## Geometric mean
+```{r}
+med_geo <- function(x) exp(sum(log(x))/length(x))
+med_geo(c(1:10))
+```
+
+## Harmonic mean
+```{r}
+med_arm <- function(x) 1/mean(1/x)
+
+med_arm(c(1:10))
+```
+
+## Moments library
+```{r}
+aleat <- sample(1:1000,50,replace=F)
+aleat
+
+skewness(aleat)
+
+kurtosis(aleat)
+```
+
+```{r}
+jarque.test(aleat)
+```
+
+## General
+```{r}
+x<-seq(0,2*pi,length=100)
+
+# Sin
+seno <- sin(x)
+
+# Cos
+coseno <- cos(x)
+
+# Tan 
+tangente <- tan(x)
+
+# Data frame
+Resumen <- data.frame(Valores=round(x,3),Seno=round(seno,3),Coseno=round(coseno,3),Tangente=round(tangente,3))
+head(Resumen,10)
+```
+
+```{r}
+plot(x, coseno,lty=1,col="blue")
+lines(x, seno,lty=1,col="red")
+legend(0, -0.55, legend=c("Cos", "Sin"),
+col=c("blue", "red"), lty=1, cex=0.8)
+```
+
