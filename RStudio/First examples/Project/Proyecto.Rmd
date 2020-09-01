@@ -1,11 +1,11 @@
 ---
-title: "Impacto del Covid en el tipo de cambio"
+title: "Variabilidad del tipo de cambio durante la pandemia"
 output: 
   flexdashboard::flex_dashboard:
     orientation: columns
-    # social: menu # compartir contenido
-    # source_code: embed # Ver el codigo interno
     vertical_layout: fill
+    includes:
+     after_body: footer.html
 ---
 
 ```{r setup, include=FALSE}
@@ -14,15 +14,17 @@ knitr::opts_chunk$set(echo = TRUE)
 
 
 ```{r message=FALSE, warning=FALSE, include=FALSE}
-library(httr)
-library(readxl)
-library(lubridate)
-library(dplyr)
-library(xlsx)
+suppressWarnings(suppressMessages(library(httr)))
+suppressWarnings(suppressMessages(library(readxl)))
+suppressWarnings(suppressMessages(library(lubridate)))
+suppressWarnings(suppressMessages(library(dplyr)))
+suppressWarnings(suppressMessages(library(xlsx)))
+suppressWarnings(suppressMessages(library(xts)))
 suppressWarnings(suppressMessages(library(flexdashboard)))
 suppressWarnings(suppressMessages(library(rAmCharts)))
 suppressWarnings(suppressMessages(library(inspectdf)))
 suppressWarnings(suppressMessages(library(highcharter)))
+suppressWarnings(suppressMessages(library(dygraphs)))
 urlTipoCambio<-"https://tipodecambio.paginasweb.cr/api/"
 urlCasosCovid<-"https://api.covid19api.com/country/costa-rica?from="
 ```
@@ -76,10 +78,7 @@ cargaTipoCambio<-function(fechas){
 ```{r message=FALSE, warning=FALSE, include=FALSE}
 #### CargaDatos de los API de casos covid-19 y guarda en xlsx
 cargaDatos<-function(){
-  library(httr)
-  library(xlsx)
-  library(lubridate)
-  
+
   suppressMessages(baseDatosOriginal<-readBD())#Leer un archivo xml
   if(!is.null(baseDatosOriginal)){ # Si la base de datos tiene algo carga desde la fecha mayor a hoy
     hoy<-Sys.Date()
@@ -140,13 +139,27 @@ readBD<-function(){
 
 
 ```{r message=FALSE, warning=FALSE, include=FALSE}
-### Metodo que carga los datos del tipo de cambio antes del covid-19
+### Metodo que carga los datos del tipo de cambio antes del covid-19 en el 2019
 #Separa la fecha, establece cantidad de casos nuevos por dia
 readBeforeCovid<-function(){
   
   baseDatos<-NULL
   if(file.exists(paths = "DBTipoCambioBefore.xlsx")){#Valida que el archivo exista
     baseDatos<-read_xlsx(path = "DBTipoCambioBefore.xlsx",sheet = "BeforeCovid")
+    baseDatos$...1<-NULL
+  }
+  return(baseDatos)
+}
+```
+
+```{r message=FALSE, warning=FALSE, include=FALSE}
+### Metodo que carga los datos del tipo de cambio del 2018
+#Separa la fecha, establece cantidad de casos nuevos por dia
+readBeforeCovid2018<-function(){
+  
+  baseDatos<-NULL
+  if(file.exists(paths = "DBTipoCambioBefore.xlsx")){#Valida que el archivo exista
+    baseDatos<-read_xlsx(path = "DBTipoCambioBefore2018.xlsx",sheet = "BeforeCovid")
     baseDatos$...1<-NULL
   }
   return(baseDatos)
@@ -167,7 +180,7 @@ baseDatos <-baseDatos %>% mutate(NuevosCasos=c(0,diff(CantidadCovid)))
 ```{r message=FALSE, warning=FALSE, include=FALSE}
 ##Funcion que carga el tipo de cambio entre 2 fechas y lo guarda en un xlsx
 ## Formato de fecha ejemplo 2019-12-31
-cargaTipoCambioEntreFechas<-function(Fecha1,Fecha2){
+cargaTipoCambioEntreFechas<-function(Fecha1,Fecha2,nombreArchivo){
   Fechas<-seq(ymd(Fecha1),ymd(Fecha2),by="day")
 
   Fechas<-as.Date(Fechas)
@@ -175,7 +188,7 @@ cargaTipoCambioEntreFechas<-function(Fecha1,Fecha2){
   TipoCambio<-cargaTipoCambio(Fechas)#Carga el vector de tipo de cambio
 
   BaseDatos<-data.frame(Fecha=Fechas,TipoCambio)
-  write.xlsx(x=BaseDatos,file = "DBTipoCambioBefore.xlsx",sheetName = "BeforeCovid",append = TRUE)
+  write.xlsx(x=BaseDatos,file = nombreArchivo,sheetName = "BeforeCovid",append = TRUE)
 }
 
 
@@ -183,9 +196,12 @@ cargaTipoCambioEntreFechas<-function(Fecha1,Fecha2){
 
 ```{r message=FALSE, warning=FALSE, include=FALSE}
 ## Carga de datos--------------------------------
-BD<-cargaDatos()
+BD<-cargaDatos() #Base de datos sencilla sin agregar columnas
 
-DB2019<-readBeforeCovid()
+DB2019<-readBeforeCovid() #Base de datos con tipo de cambio 2019 y parte de 2020
+
+DB2018<-readBeforeCovid2018()#Base de datos del tipo de cambio 2018
+DB2018$Fecha <-ymd(DB2018$Fecha)
 
 DB2019$Fecha <-ymd(DB2019$Fecha)
 
@@ -195,12 +211,19 @@ DBBeforeCovid<-DB2019 %>%
 
 BaseDatos2<-addColumns(BD)#Añade columnas
 
+#**ESTOS DATOS SOLO SE CARGAN UNA VEZ Y SE COMENTAN DE NUEVO**
+#cargaTipoCambioEntreFechas("2019-01-01","2020-03-05","DBTipoCambioBefore.xlsx")
+#cargaTipoCambioEntreFechas("2018-01-01","2018-12-31","DBTipoCambioBefore2018.xlsx")
+```
+
+
+```{r message=FALSE, warning=FALSE, include=FALSE}
 ##Variables------------------------------------
 ### Último valor de compra registrado
-ultimoCompraUSD<-max(BaseDatos2$CompraUSD)
+ultimoCompraUSD<-round(max(BaseDatos2$CompraUSD))
 
 ### Último valor de venta registrado
-ultimoVentaUSD<-max(BaseDatos2$VentaUSD)
+ultimoVentaUSD<-round(max(BaseDatos2$VentaUSD))
 
 ### Último fecha registrada
 ultimaFecha<-max(BaseDatos2$Fecha)
@@ -208,7 +231,82 @@ ultimaFecha<-max(BaseDatos2$Fecha)
 ### Casos totales
 casosTotales<-max(BaseDatos2$CantidadCovid)
 
-##Graficos 1 gAumentoCodiv---------------------
+#------------------------------------------------------------
+##Graficos 1.0 gComportamientoDolar2020
+#Comportamiento del dolar en el 2020
+
+DBBeforeCovidPart2020<-DB2019 %>%
+ select(Fecha, CompraUSD, VentaUSD) %>%
+ filter(Fecha >= as.Date("2020-01-01"))
+
+DBCovidPart2020<-BD[,-2]
+
+DB2020USD<-rbind(DBBeforeCovidPart2020,DBCovidPart2020)
+
+DB2020USD<-DB2020USD%>% mutate(Mes=month(Fecha))
+
+Resumen2020<-DB2020USD %>% group_by(Mes) %>% summarise(Compra=round(mean(CompraUSD),2),Venta=round(mean(VentaUSD),2))
+
+Meses2020<-as.character(month(Resumen2020$Mes, label = TRUE, abbr = FALSE))
+gComportamientoDolar2020 <- highchart() %>% 
+  hc_xAxis(categories = Meses2020) %>% 
+  hc_add_series(name = "Venta", data = Resumen2020$Venta) %>% 
+  hc_add_series(name = "Compra", data = Resumen2020$Compra)%>% 
+  hc_title(
+    text = "<b>Comportamiento del dolar en el 2020</b>",
+    margin = 20,
+    align = "left",
+    style = list(color = "black", useHTML = TRUE)
+    )
+
+#------------------------------------------------------------
+##Graficos 2.0 gComportamientoDolar2019
+#Comportamiento del dolar en el 2019
+
+DB2019US<-DB2019 %>%
+ select(Fecha, CompraUSD, VentaUSD) %>%
+ filter(Fecha >= as.Date("2019-01-01") & Fecha <= as.Date("2019-12-31"))
+
+DB2019US<-DB2019US%>% mutate(Mes=month(Fecha))
+
+ResumenAntes<-DB2019US %>% group_by(Mes) %>% summarise(Compra=round(mean(CompraUSD),2),Venta=round(mean(VentaUSD),2))
+
+Meses2019<-as.character(month(ResumenAntes$Mes, label = TRUE, abbr = FALSE))
+gComportamientoDolar2019 <- highchart() %>% 
+  hc_xAxis(categories = Meses2019) %>% 
+  hc_add_series(name = "Venta", data = ResumenAntes$Venta) %>% 
+  hc_add_series(name = "Compra", data = ResumenAntes$Compra)%>% 
+  hc_title(
+    text = "<b>Comportamiento del dolar en el 2019</b>",
+    margin = 20,
+    align = "left",
+    style = list(color = "black", useHTML = TRUE)
+    )
+
+#------------------------------------------------------------
+##Graficos 2.1 gComportamientoDolar2018
+#Comportamiento del dolar en el 2018
+
+DB2018US<-DB2018
+
+DB2018US<-DB2018US%>% mutate(Mes=month(Fecha))
+
+Resumen2018<-DB2018US %>% group_by(Mes) %>% summarise(Compra=round(mean(CompraUSD),2),Venta=round(mean(VentaUSD),2))
+
+Meses2018<-as.character(month(Resumen2018$Mes, label = TRUE, abbr = FALSE))
+
+gComportamientoDolar2018 <- highchart() %>% 
+  hc_xAxis(categories = Meses2018) %>% 
+  hc_add_series(name = "Venta", data = Resumen2018$Venta) %>% 
+  hc_add_series(name = "Compra", data = Resumen2018$Compra)%>% 
+  hc_title(
+    text = "<b>Comportamiento del dolar en el 2018</b>",
+    margin = 20,
+    align = "left",
+    style = list(color = "black", useHTML = TRUE)
+    )
+
+##Graficos 1.1 gAumentoCodiv---------------------
 #Aumento de casos de covid
 gAumentoCodiv<-amBarplot(x = "Fecha", y = "CantidadCovid", data = BD, labelRotation = 90)
 
@@ -224,11 +322,13 @@ gTipoCambioMes<-pipeR::pipeline(amBarplot(x = "Mes", y = c("Compra", "Venta"), d
 
 ##Graficos 3.1 gComportamientoDolar
 #Comportamiento del dolar desde el inicio de la pandemia
-Meses<-as.character(month(BaseDatos2$Mes, label = TRUE, abbr = FALSE))
+ResumenInicio2020<-BaseDatos2 %>% group_by(Mes) %>% summarise(Compra=round(mean(CompraUSD),2),Venta=round(mean(VentaUSD),2))
+
+Meses<-as.character(month(ResumenInicio2020$Mes, label = TRUE, abbr = FALSE))
 gComportamientoDolar <- highchart() %>% 
   hc_xAxis(categories = Meses) %>% 
-  hc_add_series(name = "VentaUSD", data = BaseDatos2$VentaUSD) %>% 
-  hc_add_series(name = "CompraUSD", data = BaseDatos2$CompraUSD)%>% 
+  hc_add_series(name = "Venta", data = ResumenInicio2020$Venta) %>% 
+  hc_add_series(name = "Compra", data = ResumenInicio2020$Compra)%>% 
   hc_title(
     text = "<b>Comportamiento del dolar desde el inicio de la pandemia</b>",
     margin = 20,
@@ -260,9 +360,10 @@ gCasosMensuales<-amBarplot(x = "Mes", y = "Casos", data = ResumenCasosMes,main =
 #------------------------------------------------------------------
 ##1.3 gBehaviorBeforeCovid
 ###Comportamiento del tipo de cambio antes de la pandemia
+
 gBehaviorBeforeCovid<-highchart() %>% 
-  hc_add_series(name = "VentaAntes", data = head(DBBeforeCovid,124)$VentaUSD) %>% 
-  hc_add_series(name = "CompraAntes", data = head(DBBeforeCovid,124)$CompraUSD)%>% 
+  hc_add_series(name = "Venta", data = head(DBBeforeCovid,124)$VentaUSD) %>% 
+  hc_add_series(name = "Compra", data = head(DBBeforeCovid,124)$CompraUSD)%>% 
   hc_title(
     text = "<b>Comportamiento del tipo de cambio antes de la pandemia</b>",
     margin = 20,
@@ -295,8 +396,9 @@ gBehaviorBuyCovid<-highchart() %>%
     )
 #-------------------------------------------------------------------------------
 ##Graficos 4.2
-##ESTE SE AGARRA Y SE PEGA COMO GRAFICO PORQUE NO SE PUEDE GUARDAR EN VARIABLES
-gCasosPorMes<-hchart(ResumenCasosMes, "pie", hcaes(x = Mes, y = Casos)) %>% hc_add_theme(hc_theme_538())
+##Casos por mes de covid
+gCasosPorMes<-hchart(ResumenCasosMes, "pie", hcaes(x = Mes, y = Casos),
+    name = "Casos") %>% hc_add_theme(hc_theme_538())
 
 #----------------------------------------------------------------------------
 ##Graficos 5.0 gCompraCasosMes
@@ -319,10 +421,112 @@ RSVentaCovid$Mes<-as.character(month(RSVentaCovid$Mes, label = TRUE, abbr = FALS
 gVentaCasosMes<-pipeR::pipeline(amBarplot(x = "Mes", y = c("Casos", "Compra"), data = RSVentaCovid, legend = TRUE, main = "Comparación mensual promedio del tipo de cambio",
         mainColor = "black", mainSize = 15, creditsPosition = "top-left", ylab = "Tipo cambio",xlab = "Meses"),setChartCursor())
 
+
+#----------------------------------------------------------------------------
+##Graficos 6.0 gPrediccionVentaDolar
+###Prediccion del comportamiento de la venta del dolar
+DB2019USAntesCovid<-DB2019 %>%
+ select(Fecha, CompraUSD, VentaUSD) %>%
+ filter(Fecha >= as.Date("2020-01-01") & Fecha <= as.Date("2020-03-05"))
+
+DBPredicciones<-rbind(DB2018,DB2019,DB2019USAntesCovid)
+
+DBVentas_xts <- xts(DBPredicciones$VentaUSD,order.by=DBPredicciones$Fecha,frequency=12)
+
+## ARIMA(4,1,2)
+fitArimaVenta<-arima(DBPredicciones$VentaUSD,order=c(4,1,2))
+
+#Elaboracion de perido de prediccion
+per_USD<-seq(as.Date("2020-03-06"),as.Date("2020-08-25"),"day")
+
+predicciones<-predict(fitArimaVenta,n.ahead=length(per_USD)) # n.ahead es la Q de periodos
+
+preds<-predicciones$pred
+LimInf<-preds-2*predicciones$se
+LimSup<-preds+2*predicciones$se
+
+seriesVentaUSD<-cbind(Cambio = DBVentas_xts,
+                    LimInf=xts(LimInf,order.by=per_USD),
+                    Pronostico=xts(preds,order.by=per_USD),
+                    LimSup=xts(LimSup,order.by=per_USD))
+
+gPrediccionVentaDolar<-dygraph(seriesVentaUSD,main="Venta del dolar Costa Rica",ylab="Tipo de cambio")%>%
+  dySeries(c("LimInf", "Pronostico", "LimSup"), label = "Pronostico")%>%
+  dyRangeSelector(height = 20, strokeColor = "red")%>%  
+  dyOptions(axisLineColor = "navy", 
+            gridLineColor = "lightblue")
+
+##Graficos 6.1 gPrediccionCompraDolar
+### ARIMA(4,1,2)-----------------------------------------------------
+fitArimaCompra<-arima(DBPredicciones$CompraUSD,order=c(4,1,2))
+
+prediccionesCompra<-predict(fitArimaCompra,n.ahead=length(per_USD)) #periodos
+
+predsCompra<-prediccionesCompra$pred
+LimInfCompra<-predsCompra-2*prediccionesCompra$se
+LimSupCompra<-predsCompra+2*prediccionesCompra$se
+
+DBCompras_xts <- xts(DBPredicciones$CompraUSD,order.by=DBPredicciones$Fecha,frequency=12)
+
+seriesCompraUSD<-cbind(Cambio = DBCompras_xts,
+                    LimInfCompra=xts(LimInfCompra,order.by=per_USD),
+                    Pronostico=xts(predsCompra,order.by=per_USD),
+                    LimSupCompra=xts(LimSupCompra,order.by=per_USD))
+gPrediccionCompraDolar<-dygraph(seriesCompraUSD,main="Compra del dolar Costa Rica",ylab="Tipo de cambio")%>%
+  dySeries(c("LimInfCompra", "Pronostico", "LimSupCompra"), label = "Pronostico")%>%
+  dyRangeSelector(height = 20, strokeColor = "red")%>%  
+  dyOptions(axisLineColor = "navy", 
+            gridLineColor = "lightblue")
 ```
-## Tipo de cambio {.tabset}
-### Información actualizada al `r ultimaFecha`
-Análisis de información suministrada en intenet con respecto al tipo de cambio del dolar y la cantidad de casos nuevos de Covid a nivel de Costa Rica.
+
+
+```{r message=FALSE, warning=FALSE, include=FALSE}
+#**ADAPTABLE LAS FECHAS A COMPRAR**
+## 7 gVariabilidad del comportamiento---------------------------------------
+###Comportamiento de la compra del dolar antes y durante la pandemia
+
+DBPart2018<-DB2018%>%
+ select(Fecha, CompraUSD, VentaUSD) %>%
+ filter(Fecha >= as.Date("2018-03-01") & Fecha <= as.Date("2018-08-28"))
+
+DBPart2019<-DB2019%>%
+ select(Fecha, CompraUSD, VentaUSD) %>%
+ filter(Fecha >= as.Date("2019-03-01") & Fecha <= as.Date("2019-08-28")) 
+
+DB2020<- BD[,-2]
+DB2020$Fecha<-ymd(DB2020$Fecha) 
+
+DBPart2020<-DB2020%>%
+ select(Fecha, CompraUSD, VentaUSD) %>%
+ filter(Fecha >= as.Date("2020-03-01") & Fecha <= as.Date("2020-08-28"))
+
+gVariabilidadCompra<-highchart() %>% 
+  hc_add_series(name = "2018", data = DBPart2018$CompraUSD) %>% 
+  hc_add_series(name = "2019", data = DBPart2019$CompraUSD) %>%
+  hc_add_series(name = "2020", data = DBPart2020$CompraUSD) %>%
+  hc_title(
+    text = "<b>Contraste en el tipo de compra en años durante la pandemia</b>",
+    margin = 20,
+    align = "left",
+    style = list(color = "black", useHTML = TRUE)
+    )
+
+gVariabilidadVenta<-highchart() %>% 
+  hc_add_series(name = "2018", data = DBPart2018$VentaUSD) %>% 
+  hc_add_series(name = "2019", data = DBPart2019$VentaUSD) %>%
+  hc_add_series(name = "2020", data = DBPart2020$VentaUSD) %>%
+  hc_title(
+    text = "<b>Contraste en el tipo de venta en años durante la pandemia</b>",
+    margin = 20,
+    align = "left",
+    style = list(color = "black", useHTML = TRUE)
+    )
+```
+
+
+## Variabilidad del tipo de cambio durante la pandemia {.tabset}
+
+Análisis de información suministrada de internet, con respecto a la fluctuación que ha tenido el tipo de cambio en el dolar durante la pandemia del Covid-19.
 
 
 # Tipo de cambio {.tabset}
@@ -350,8 +554,22 @@ valueBox(ultimoCompraUSD, icon = "fa-usd",caption = "Compra", color="#3CDC4D")
 valueBox(ultimoVentaUSD, icon = "fa-usd",caption = "Venta", color="#3CDC4D")
 ```
 
-Column {data-width=200}  {.tabset}
+## My Second column
+### Comportamiento mensuales del covid
+```{r, echo=F}
+gCasosPorMes
+```
+
+
+# Comportamiento del dolar {.tabset}
+Column {data-width=500}  {.tabset}
 -----------------------------------------------------------------------
+
+### Comportamiento en el 2020
+```{r, echo=F}
+gComportamientoDolar2020
+```
+
 ### Comportamiento general durante Covid
 ```{r, echo=F}
 gComportamientoDolar
@@ -361,6 +579,30 @@ gComportamientoDolar
 ```{r, echo=F}
 gTipoCambioMes
 ```
+
+### Contraste del tipo de compra en años previos
+```{r, echo=F}
+gVariabilidadCompra
+```
+
+### Contraste del tipo de venta en años previos
+```{r, echo=F}
+gVariabilidadVenta
+```
+
+Column {data-width=200}  {.tabset}
+-----------------------------------------------------------------------
+
+### Comportamiento en el 2019
+```{r, echo=F}
+gComportamientoDolar2019
+```
+
+### Comportamiento en el 2018
+```{r, echo=F}
+gComportamientoDolar2018
+```
+
 ### Comportamiento general antes del Covid
 ```{r, echo=F}
 gBehaviorBeforeCovid
@@ -378,6 +620,16 @@ gBehaviorSellCovid
 gBehaviorBuyCovid
 ```
 
+### Predicción en la compra del dolar
+```{r, echo=F}
+gPrediccionCompraDolar
+```
+
+### Predicción en la venta del dolar
+```{r, echo=F}
+gPrediccionVentaDolar
+```
+
 # Casos Covid {.tabset}
 Column {data-width=500}  {.tabset}
 -----------------------------------------------------------------------
@@ -387,40 +639,8 @@ Column {data-width=500}  {.tabset}
 gAumentoCodiv
 ```
 
-### Comportamiento mensual 1.0
-```{r, echo=F}
-gCasosPorMes
-```
-
-### Comportamiento mensual 1.1
+### Comportamiento mensual
 ```{r, echo=F}
 gCasosMensuales
-```
-
-
-```{r message=FALSE, warning=FALSE, include=FALSE}
-#cargaTipoCambioEntreFechas("2019-01-01","2020-03-05")
-
-
-```
-
-
-```{r}
-suppressWarnings(suppressMessages(library(FactoMineR)))
-suppressWarnings(suppressMessages(library(factoextra)))
-#Base de datos numericos
-# Los valores a graficar de componentes principales se crea con la funcion PCA
-Valores <- PCA(Datos, scale.unit=TRUE, # Estandarizar datos
-               ncp=5, # Numero de componentes principales 
-               graph = FALSE) # No graficar de una vez
-
-Valores
-
-plot(Valores,axes=c(1, 2), # componentes graficados
-     choix="ind", # Para graficar los cantones (individuos o filas)
-     col.ind="blue",new.plot=TRUE)
-
-# Individuos
-fviz_pca_ind(Valores,ggtheme=theme_get(),col.ind = "blue")
 ```
 
